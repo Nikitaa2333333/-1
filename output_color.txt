@@ -1,0 +1,31 @@
+## UI Pro Max Search Results
+**Domain:** color | **Query:** beauty ecommerce food premium
+**Source:** colors.csv | **Found:** 3 results
+
+### Result 1
+- **Product Type:** Restaurant/Food Service
+- **Primary (Hex):** #DC2626
+- **Secondary (Hex):** #F87171
+- **CTA (Hex):** #CA8A04
+- **Background (Hex):** #FEF2F2
+- **Text (Hex):** #450A0A
+- **Notes:** Appetizing red + warm gold
+
+### Result 2
+- **Product Type:** Luxury/Premium Brand
+- **Primary (Hex):** #1C1917
+- **Secondary (Hex):** #44403C
+- **CTA (Hex):** #CA8A04
+- **Background (Hex):** #FAFAF9
+- **Text (Hex):** #0C0A09
+- **Notes:** Premium black + gold accent
+
+### Result 3
+- **Product Type:** Beauty/Spa/Wellness Service
+- **Primary (Hex):** #EC4899
+- **Secondary (Hex):** #F9A8D4
+- **CTA (Hex):** #8B5CF6
+- **Background (Hex):** #FDF2F8
+- **Text (Hex):** #831843
+- **Notes:** Soft pink + lavender luxury
+

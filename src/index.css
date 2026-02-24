@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --font-anton: "Anton", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-dela: "Dela Gothic One", cursive;
+
+  --color-brand-pink: #FBCFE8;
+  --color-brand-hot: #EC4899;
+  --color-brand-dark: #4C0519;
+  --color-brand-cream: #FFFDE7;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: #FDF2F8;
+  color: var(--color-brand-dark);
+  overflow-x: hidden;
+}
+
+
+.text-stroke {
+  -webkit-text-stroke: 1px var(--color-brand-dark);
+  color: transparent;
+}
+
+.text-stroke-white {
+  -webkit-text-stroke: 1px white;
+  color: transparent;
+}

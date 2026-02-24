@@ -1,0 +1,84 @@
+## UI Pro Max Search Results
+**Domain:** style | **Query:** soft airy minimal white blur glow pink beauty
+**Source:** styles.csv | **Found:** 5 results
+
+### Result 1
+- **Style Category:** Retro-Futurism
+- **Type:** General
+- **Keywords:** Vintage sci-fi, 80s aesthetic, neon glow, geometric patterns, CRT scanlines, pixel art, cyberpunk, synthwave
+- **Primary Colors:** Neon Blue #0080FF, Hot Pink #FF006E, Cyan #00FFFF, Deep Black #1A1A2E, Purple #5D34D0
+- **Effects & Animation:** CRT scanlines (::before overlay), neon glow (text-shadow+box-shadow), glitch effects (skew/offset keyframes)
+- **Best For:** Gaming, entertainment, music platforms, tech brands, artistic projects, nostalgic, cyberpunk
+- **Performance:** тЪа Moderate
+- **Accessibility:** тЪа High contrast/strain
+- **Framework Compatibility:** Tailwind 8/10, CSS-in-JS 9/10
+- **Complexity:** Medium
+- **AI Prompt Keywords:** Build a retro-futuristic (cyberpunk/vaporwave) interface with neon colors (blue, pink, cyan), deep black background, 80s aesthetic, CRT scanlines, glitch effects, neon glow text/borders, monospace fonts, geometric patterns. Use neon text-shadow and animated glitch effects.
+- **CSS/Technical Keywords:** color: neon colors (#0080FF, #FF006E, #00FFFF), text-shadow: 0 0 10px neon, background: #000 or #1A1A2E, font-family: monospace, animation: glitch (skew+offset), filter: hue-rotate
+- **Implementation Checklist:** тШР Neon colors used, тШР CRT scanlines effect, тШР Glitch animations active, тШР Monospace font, тШР Deep black background, тШР Glow effects applied, тШР 80s patterns present
+- **Design System Variables:** --neon-colors: #0080FF #FF006E #00FFFF, --background: #000000, --font-family: monospace, --effect: glitch+glow, --scanline-opacity: 0.3, --crt-effect: true
+
+### Result 2
+- **Style Category:** Nature Distilled
+- **Type:** General
+- **Keywords:** Muted earthy, skin tones, wood, soil, sand, terracotta, warmth, organic materials, handmade warmth
+- **Primary Colors:** Terracotta #C67B5C, Sand Beige #D4C4A8, Warm Clay #B5651D, Soft Cream #F5F0E1
+- **Effects & Animation:** Subtle parallax, natural easing (ease-out), texture overlays, grain effects, soft shadows
+- **Best For:** Wellness brands, sustainable products, artisan goods, organic food, spa/beauty, home decor
+- **Performance:** тЪб Excellent
+- **Accessibility:** тЬУ WCAG AA
+- **Framework Compatibility:** Tailwind 10/10, CSS 10/10
+- **Complexity:** Low
+- **AI Prompt Keywords:** Design with nature distilled aesthetic. Use: muted earthy colors (terracotta, sand, olive), organic materials feel, warm tones, handmade warmth, natural textures, artisan quality, sustainable vibe, soft gradients.
+- **CSS/Technical Keywords:** background: warm earth tones, color: #C67B5C #D4C4A8 #6B7B3C, border-radius: organic (varied), box-shadow: soft natural, texture overlays (grain), font: humanist sans-serif
+- **Implementation Checklist:** тШР Earth tones dominant, тШР Warm feel achieved, тШР Textures subtle, тШР Handmade quality, тШР Sustainable messaging, тШР Calming aesthetic
+- **Design System Variables:** --terracotta: #C67B5C, --sand-beige: #D4C4A8, --warm-clay: #B5651D, --soft-cream: #F5F0E1, --olive-green: #6B7B3C, --grain-opacity: 0.1
+
+### Result 3
+- **Style Category:** Vaporwave
+- **Type:** General
+- **Keywords:** Synthwave, retro-futuristic, 80s-90s, neon, glitch, nostalgic, sunset gradient, dreamy, aesthetic
+- **Primary Colors:** #FF71CE (Pink), #01CDFE (Cyan), #05FFA1 (Mint), #B967FF (Purple)
+- **Effects & Animation:** text-shadow glow, linear-gradient, filter: hue-rotate(), glitch animations, retro scan lines
+- **Best For:** Music platforms, gaming, creative portfolios, tech startups, entertainment, artistic projects
+- **Performance:** тЪа Moderate
+- **Accessibility:** тЪа Poor (motion)
+- **Framework Compatibility:** Tailwind 8/10, CSS-in-JS 9/10
+- **Complexity:** Medium
+- **AI Prompt Keywords:** Design a vaporwave aesthetic interface. Use: sunset gradients (pink/cyan/purple), 80s-90s nostalgia, glitch effects, Greek statue imagery, palm trees, grid patterns, neon glow, retro-futuristic feel, dreamy atmosphere.
+- **CSS/Technical Keywords:** background: linear-gradient(180deg, #FF71CE, #01CDFE, #B967FF), filter: hue-rotate(), text-shadow: neon glow, retro grid (perspective + linear-gradient), VHS scanlines
+- **Implementation Checklist:** тШР Sunset gradient present, тШР Neon glow applied, тШР Retro grid visible, тШР Glitch effects subtle, тШР Dreamy atmosphere, тШР 80s-90s aesthetic
+- **Design System Variables:** --vapor-pink: #FF71CE, --vapor-cyan: #01CDFE, --vapor-mint: #05FFA1, --vapor-purple: #B967FF, --grid-color: rgba(255,255,255,0.1), --glow-intensity: 15px
+
+### Result 4
+- **Style Category:** Minimal & Direct
+- **Type:** Landing Page
+- **Keywords:** Minimal text, white space heavy, single column layout, direct messaging, clean typography, visual-centric, fast-loading
+- **Primary Colors:** Monochromatic primary, white background, single accent color for CTA, black/dark grey text
+- **Effects & Animation:** Very subtle hover effects, minimal animations, fast page load (no heavy animations), smooth scroll
+- **Best For:** Simple service landing pages, indie products, consulting services, micro SaaS, freelancer portfolios
+- **Performance:** тЪб Excellent
+- **Accessibility:** тЬУ WCAG AAA
+- **Framework Compatibility:** Tailwind 10/10, Bootstrap 9/10
+- **Complexity:** Medium
+- **AI Prompt Keywords:** Design a minimal direct landing page. Use: single column layout, maximum white space, essential content only, one CTA, clean typography, no decorative elements, fast loading, direct messaging.
+- **CSS/Technical Keywords:** max-width: 680px, margin: 0 auto, padding: 4rem 2rem, font-size: 18-20px, line-height: 1.6, minimal animations, no box-shadow, clean borders only
+- **Implementation Checklist:** тШР Single column centered, тШР White space generous, тШР One primary CTA only, тШР No decorative images, тШР Page weight < 500KB, тШР Load time < 2s
+- **Design System Variables:** --content-max-width: 680px, --spacing-large: 4rem, --font-size-body: 18px, --line-height: 1.6, --color-text: #1a1a1a, --color-bg: #ffffff
+
+### Result 5
+- **Style Category:** Neumorphism
+- **Type:** General
+- **Keywords:** Soft UI, embossed, debossed, convex, concave, light source, subtle depth, rounded (12-16px), monochromatic
+- **Primary Colors:** Light pastels: Soft Blue #C8E0F4, Soft Pink #F5E0E8, Soft Grey #E8E8E8
+- **Effects & Animation:** Soft box-shadow (multiple: -5px -5px 15px, 5px 5px 15px), smooth press (150ms), inner subtle shadow
+- **Best For:** Health/wellness apps, meditation platforms, fitness trackers, minimal interaction UIs
+- **Performance:** тЪб Good
+- **Accessibility:** тЪа Low contrast
+- **Framework Compatibility:** Tailwind 8/10, CSS-in-JS 9/10
+- **Complexity:** Medium
+- **AI Prompt Keywords:** Create a neumorphic UI with soft 3D effects. Use light pastels, rounded corners (12-16px), subtle soft shadows (multiple layers), no hard lines, monochromatic color scheme with light/dark variations. Embossed/debossed effect on interactive elements.
+- **CSS/Technical Keywords:** border-radius: 12-16px, box-shadow: -5px -5px 15px rgba(0,0,0,0.1), 5px 5px 15px rgba(255,255,255,0.8), background: linear-gradient(145deg, color1, color2), transform: scale on press
+- **Implementation Checklist:** тШР Rounded corners 12-16px consistent, тШР Multiple shadow layers (2-3), тШР Pastel color verified, тШР Monochromatic palette checked, тШР Press animation smooth 150ms
+- **Design System Variables:** --border-radius: 14px, --shadow-soft-1: -5px -5px 15px, --shadow-soft-2: 5px 5px 15px, --color-light: #F5F5F5, --color-primary: single pastel
+
