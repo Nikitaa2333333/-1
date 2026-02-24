@@ -8,7 +8,6 @@ export const ScrollSequence = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const imagesRef = useRef<HTMLImageElement[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [loadProgress, setLoadProgress] = useState(0);
 
     /* ── Scroll progress ─────────────────────────────── */
     const { scrollYProgress } = useScroll({
@@ -50,23 +49,21 @@ export const ScrollSequence = () => {
         const imgs = new Array<HTMLImageElement>(FRAME_COUNT);
         imagesRef.current = imgs;
 
-        // Порог для разблокировки лендинга — первые N кадров
-        const QUICK_LOAD_THRESHOLD = 5;
+        // Разрешаем отрисовку сразу после первого кадра
+        const QUICK_LOAD_THRESHOLD = 1;
 
         for (let i = 0; i < FRAME_COUNT; i++) {
             const img = new Image();
             imgs[i] = img;
             img.onload = img.onerror = () => {
                 loaded++;
-                setLoadProgress(Math.floor((loaded / FRAME_COUNT) * 100));
 
-                // Как только загружены первые несколько кадров — убираем лоадер, 
-                // разрешаем пользователю смотреть первый экран, пока остальное грузится в фоне.
+                // Как только загружен первый кадр — можем рендерить
                 if (loaded === QUICK_LOAD_THRESHOLD) {
                     setIsLoaded(true);
                 }
             };
-            img.src = `/sequence/frame_${i}.png`;
+            img.src = `/sequence/frame_${i}.webp`;
         }
     }, []);
 
@@ -101,24 +98,7 @@ export const ScrollSequence = () => {
     return (
         <div ref={containerRef} className="h-[400vh] w-full bg-[#050505] relative">
 
-            {/* Loading overlay */}
-            {!isLoaded && (
-                <div className="fixed inset-0 z-[100] bg-[#050505] flex flex-col items-center justify-center gap-4">
-                    <p className="font-dela text-2xl md:text-4xl text-brand-hot">
-                        Апельсинка
-                    </p>
-                    <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <motion.div
-                            animate={{ width: `${loadProgress}%` }}
-                            transition={{ duration: 0.3 }}
-                            className="h-full bg-brand-hot rounded-full"
-                        />
-                    </div>
-                    <p className="font-sans text-sm font-bold text-white/50">
-                        {loadProgress}%
-                    </p>
-                </div>
-            )}
+
 
             {/* Sticky scene */}
             <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-[#050505]">
