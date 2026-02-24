@@ -59,7 +59,7 @@ export const ProductGrid = () => {
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <a href="https://wa.me/?text=Здравствуйте!%20Хочу%20заказать%20клубнику" target="_blank" rel="noopener noreferrer" className="absolute bottom-4 right-4 z-20 bg-brand-hot text-white p-3 rounded-full shadow-lg opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:translate-y-4 lg:group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center">
+                <a href="https://wa.me/?text=Здравствуйте!%20Хочу%20заказать%20клубнику" target="_blank" rel="noopener noreferrer" className="absolute bottom-4 right-4 z-20 bg-brand-hot text-white p-3 rounded-full shadow-lg opacity-0 lg:group-hover:opacity-100 translate-y-4 lg:group-hover:translate-y-0 transition-all duration-300 hidden lg:flex items-center justify-center">
                   <Plus className="w-6 h-6" />
                 </a>
               </div>
@@ -72,7 +72,7 @@ export const ProductGrid = () => {
                   </span>
                 </div>
                 <p className="text-brand-dark/60 font-sans text-sm">{product.desc}</p>
-                <a href="https://wa.me/?text=Здравствуйте!%20Хочу%20заказать%20клубнику" target="_blank" rel="noopener noreferrer" className="block w-full py-3 border-2 border-brand-dark rounded-xl font-bold text-sm hover:bg-brand-dark hover:text-white transition-colors text-center">
+                <a href="https://wa.me/?text=Здравствуйте!%20Хочу%20заказать%20клубнику" target="_blank" rel="noopener noreferrer" className="block w-full py-4 border-2 border-brand-dark rounded-xl font-bold text-center text-sm md:text-base hover:bg-brand-dark hover:text-white active:scale-[0.98] transition-all">
                   В корзину
                 </a>
               </div>

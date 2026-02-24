@@ -49,13 +49,22 @@ export const ScrollSequence = () => {
         let loaded = 0;
         const imgs = new Array<HTMLImageElement>(FRAME_COUNT);
         imagesRef.current = imgs;
+
+        // Порог для разблокировки лендинга — первые N кадров
+        const QUICK_LOAD_THRESHOLD = 5;
+
         for (let i = 0; i < FRAME_COUNT; i++) {
             const img = new Image();
             imgs[i] = img;
             img.onload = img.onerror = () => {
                 loaded++;
                 setLoadProgress(Math.floor((loaded / FRAME_COUNT) * 100));
-                if (loaded === FRAME_COUNT) setIsLoaded(true);
+
+                // Как только загружены первые несколько кадров — убираем лоадер, 
+                // разрешаем пользователю смотреть первый экран, пока остальное грузится в фоне.
+                if (loaded === QUICK_LOAD_THRESHOLD) {
+                    setIsLoaded(true);
+                }
             };
             img.src = `/sequence/frame_${i}.png`;
         }
@@ -117,11 +126,14 @@ export const ScrollSequence = () => {
 
                 {/* ── Beat A: Hero (0-20%) ── */}
                 <motion.div style={{ opacity: opA, y: yA }} className="absolute inset-0 flex flex-col justify-center items-center p-6 md:p-12 pointer-events-none text-center">
-                    <div className="max-w-3xl flex flex-col items-center">
-                        <h1 className="font-dela text-[clamp(40px,8vw,100px)] leading-[1.1] text-white overflow-hidden mb-6">
-                            Привет! <br /> Это Апельсинка
+                    <div className="relative z-10 max-w-3xl flex flex-col items-center">
+                        {/* Glow halo */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/15 blur-[100px] rounded-full -z-10" />
+
+                        <h1 className="font-dela text-[clamp(36px,9vw,100px)] leading-[1.1] text-white mb-6 whitespace-nowrap px-4">
+                            Привет!<br />Это Апельсинка
                         </h1>
-                        <p className="font-sans text-lg md:text-2xl text-white font-medium max-w-lg leading-snug">
+                        <p className="font-sans text-xl md:text-3xl text-white font-medium max-w-lg leading-snug">
                             Свежая ягода в бельгийском шоколаде. Полностью ручная работа.
                         </p>
                     </div>
@@ -129,13 +141,16 @@ export const ScrollSequence = () => {
 
                 {/* ── Beat B: Шоколад (25-45%) ── */}
                 <motion.div style={{ opacity: opB, y: yB }} className="absolute inset-0 flex flex-col justify-center items-end p-6 md:p-12 pointer-events-none text-right">
-                    <div className="max-w-2xl">
+                    <div className="relative z-10 max-w-2xl">
+                        {/* Glow halo */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/40 blur-[100px] rounded-full -z-10" />
+
                         <span className="inline-block text-brand-hot font-bold text-sm mb-4">Состав</span>
-                        <h2 className="font-dela text-[clamp(32px,8vw,80px)] leading-[1.1] text-white mb-6">
+                        <h2 className="font-dela text-[clamp(36px,8vw,90px)] leading-[1.1] text-white mb-6 px-4">
                             Бельгийский<br />
                             <span className="text-brand-hot">шоколад</span>
                         </h2>
-                        <p className="font-sans text-lg md:text-2xl text-white font-medium max-w-lg ml-auto leading-snug">
+                        <p className="font-sans text-xl md:text-3xl text-white font-medium max-w-lg ml-auto leading-snug">
                             Callebaut — выбор лучших кондитеров мира.
                         </p>
                     </div>
@@ -143,13 +158,16 @@ export const ScrollSequence = () => {
 
                 {/* ── Beat C: Свежесть (50-70%) ── */}
                 <motion.div style={{ opacity: opC, y: yC }} className="absolute inset-0 flex flex-col justify-center items-start p-6 md:p-12 pointer-events-none text-left">
-                    <div className="max-w-2xl">
+                    <div className="relative z-10 max-w-2xl">
+                        {/* Glow halo */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/40 blur-[100px] rounded-full -z-10" />
+
                         <span className="inline-block text-brand-hot font-bold text-sm mb-4">Свежесть</span>
-                        <h2 className="font-dela text-[clamp(32px,8vw,80px)] leading-[1.1] text-white mb-6">
+                        <h2 className="font-dela text-[clamp(36px,8vw,90px)] leading-[1.1] text-white mb-6 px-4">
                             Собрана<br />
                             <span className="text-brand-hot">сегодня</span>
                         </h2>
-                        <p className="font-sans text-lg md:text-2xl text-white font-medium max-w-lg leading-snug">
+                        <p className="font-sans text-xl md:text-3xl text-white font-medium max-w-lg leading-snug">
                             Никакой заморозки — только спелая ягода.
                         </p>
                     </div>
@@ -157,12 +175,15 @@ export const ScrollSequence = () => {
 
                 {/* ── Beat D: Заказ (75-98%) ── */}
                 <motion.div style={{ opacity: opD, y: yD }} className="absolute inset-0 flex flex-col justify-end items-center p-6 md:p-12 pb-32 md:pb-40 pointer-events-none text-center">
-                    <div className="max-w-2xl flex flex-col items-center">
-                        <h2 className="font-dela text-[clamp(40px,9vw,90px)] leading-[1.1] text-white mb-6">
+                    <div className="relative z-10 max-w-2xl flex flex-col items-center">
+                        {/* Glow halo */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/40 blur-[100px] rounded-full -z-10" />
+
+                        <h2 className="font-dela text-[clamp(40px,10vw,100px)] leading-[1.1] text-white mb-6 px-4">
                             Сделай<br />
                             <span className="text-brand-hot">заказ</span>
                         </h2>
-                        <p className="font-sans text-lg md:text-2xl text-white font-medium leading-snug">
+                        <p className="font-sans text-xl md:text-3xl text-white font-medium leading-snug">
                             Доставим за 60 минут к твоей двери.
                         </p>
                     </div>
@@ -184,7 +205,7 @@ export const ScrollSequence = () => {
                 {/* ── FIXED BUTTON "ВЫБРАТЬ КЛУБНИКУ" ── */}
                 <a
                     href="#order"
-                    className="absolute bottom-6 right-6 md:bottom-10 md:right-10 z-50 bg-white text-brand-dark px-8 py-4 rounded-full font-sans font-bold text-sm md:text-base hover:bg-brand-pink transition-colors"
+                    className="absolute bottom-6 left-6 right-6 text-center md:left-auto md:bottom-10 md:right-10 md:w-auto z-50 bg-white text-brand-dark py-5 px-8 md:py-4 rounded-full font-sans font-bold text-base md:text-lg hover:bg-brand-pink transition-colors"
                 >
                     Выбрать клубнику
                 </a>
