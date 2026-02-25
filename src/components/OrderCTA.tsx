@@ -1,4 +1,4 @@
-import { Instagram, Send } from "lucide-react";
+import { Send } from "lucide-react";
 
 export const OrderCTA = () => {
     return (
@@ -11,15 +11,11 @@ export const OrderCTA = () => {
                             Перейти к <br /> заказу
                         </h2>
                         <p className="text-xl md:text-2xl font-sans font-medium text-white/90">
-                            Напиши нам в Instagram или Telegram — мы быстро ответим, поможем подобрать идеальный набор и оформим доставку на удобное время.
+                            Напиши нам в Telegram — мы быстро ответим, поможем подобрать идеальный набор и оформим доставку на удобное время.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
-                            <a href="#" className="flex items-center justify-center gap-3 bg-white text-brand-hot px-8 py-5 rounded-full font-bold text-xl hover:bg-brand-cream active:scale-95 transition-all duration-200">
-                                <Instagram className="w-6 h-6" />
-                                Написать в Instagram
-                            </a>
-                            <a href="#" className="flex items-center justify-center gap-3 border-2 border-white text-white px-8 py-5 rounded-full font-bold text-xl hover:bg-white hover:text-brand-hot active:scale-95 transition-all duration-200">
+                            <a href="https://t.me/apelsinka" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-white text-brand-hot px-8 py-5 rounded-full font-bold text-xl hover:bg-brand-cream active:scale-95 transition-all duration-200">
                                 <Send className="w-6 h-6" />
                                 Написать в Telegram
                             </a>

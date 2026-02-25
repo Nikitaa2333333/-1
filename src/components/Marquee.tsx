@@ -1,21 +1,38 @@
 import { motion } from "framer-motion";
 
+const phrases = [
+  "Belgian Chocolate",
+  "Свежая клубника",
+  "Малина в бельгийском шоколаде",
+  "Клубника Limeberry",
+  "Сублимированные фрукты",
+  "Идеально на 8 марта",
+  "На день рождения",
+  "Без повода",
+  "Для признания в любви"
+];
+
 export const Marquee = () => {
   return (
-    <div className="bg-brand-hot text-white py-4 overflow-hidden border-y-4 border-brand-dark rotate-1 z-20 relative w-[110vw] -translate-x-[5vw] my-10">
+    <div className="bg-brand-hot text-white py-6 overflow-hidden border-y-[3px] border-brand-dark rotate-[-1deg] z-20 relative w-screen my-12 shadow-2xl">
       <motion.div
         className="flex whitespace-nowrap"
-        animate={{ x: [0, -1000] }}
-        transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{
+          repeat: Infinity,
+          duration: 15,
+          ease: "linear"
+        }}
       >
-        {[...Array(10)].map((_, i) => (
-          <div key={i} className="flex items-center gap-8 px-4">
-            <span className="font-dela text-3xl">Свежая клубника</span>
-            <span className="text-2xl opacity-50">✦</span>
-            <span className="font-dela text-3xl">Belgian chocolate</span>
-            <span className="text-2xl opacity-50">✦</span>
-            <span className="font-dela text-3xl">Подарок к 8 марта</span>
-            <span className="text-2xl opacity-50">✦</span>
+        {/* Рендерим дважды для бесконечного цикла */}
+        {[1, 2].map((group) => (
+          <div key={group} className="flex items-center">
+            {phrases.map((text, i) => (
+              <div key={i} className="flex items-center gap-12 px-6">
+                <span className="font-dela text-3xl md:text-4xl tracking-tight uppercase">{text}</span>
+                <span className="text-3xl opacity-40">✦</span>
+              </div>
+            ))}
           </div>
         ))}
       </motion.div>

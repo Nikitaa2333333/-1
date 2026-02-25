@@ -1,4 +1,4 @@
-import { Instagram, MapPin, Send } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -18,30 +18,42 @@ export const Footer = () => {
             <h3 className="font-dela text-3xl mb-8">Контакты</h3>
             <div className="flex items-start gap-4">
               <MapPin className="w-8 h-8 text-brand-hot shrink-0" />
-              <div>
-                <p className="font-sans text-xl font-bold">Наш адрес</p>
-                <p className="text-brand-dark/70 font-sans text-lg">
-                  Украинский бульвар, 8с1
-                </p>
+              <div className="space-y-4">
+                <div>
+                  <p className="font-sans text-xl font-bold">Наш адрес</p>
+                  <p className="text-brand-dark/70 font-sans text-lg">
+                    Украинский бульвар, 8, строение 1
+                  </p>
+                </div>
+                <div>
+                  <p className="font-sans text-xl font-bold">Режим работы</p>
+                  <p className="text-brand-dark/70 font-sans text-lg">
+                    Ежедневно с 9:00 до 20:00
+                  </p>
+                </div>
+                <a
+                  href="https://yandex.ru/maps/?text=Украинский+бульвар+8с1+Москва"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-brand-hot text-white rounded-xl font-bold hover:bg-brand-dark transition-all mt-2"
+                >
+                  <MapPin className="w-5 h-5" />
+                  Построить маршрут
+                </a>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 pt-4">
-              <a href="#" className="w-12 h-12 rounded-full border border-brand-dark/20 flex items-center justify-center hover:bg-brand-hot hover:border-brand-hot hover:text-white transition-all">
-                <Instagram className="w-6 h-6" />
-              </a>
-              <a href="#" className="w-12 h-12 rounded-full border border-brand-dark/20 flex items-center justify-center hover:bg-brand-hot hover:border-brand-hot hover:text-white transition-all">
-                <Send className="w-6 h-6" />
-              </a>
-            </div>
+
           </div>
 
           <div className="space-y-6">
             <h3 className="font-dela text-3xl mb-8">Меню</h3>
-            <ul className="space-y-4 font-sans text-lg text-brand-dark/70">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans text-lg text-brand-dark/70">
               <li><a href="#" className="hover:text-brand-hot transition-colors">Клубника в шоколаде</a></li>
-              <li><a href="#" className="hover:text-brand-hot transition-colors">Подарочные наборы</a></li>
-              <li><a href="#" className="hover:text-brand-hot transition-colors">Дубайский шоколад</a></li>
+              <li><a href="#" className="hover:text-brand-hot transition-colors">Малина в шоколаде</a></li>
+              <li><a href="#" className="hover:text-brand-hot transition-colors">Limeberry</a></li>
+              <li><a href="#" className="hover:text-brand-hot transition-colors">Смузи и Фреши</a></li>
+              <li><a href="#" className="hover:text-brand-hot transition-colors">Пончики и Хот-доги</a></li>
               <li><a href="#" className="hover:text-brand-hot transition-colors">О нас</a></li>
             </ul>
           </div>
@@ -50,11 +62,11 @@ export const Footer = () => {
 
         </div>
 
-        <div className="border-t border-brand-dark/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-brand-dark/40 font-sans text-sm">
+        <div className="border-t border-brand-dark/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-brand-dark/40 font-sans text-sm text-center md:text-left">
           <p>© 2024 Апельсинка. Все права защищены.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-brand-dark">Политика конфиденциальности</a>
-            <a href="#" className="hover:text-brand-dark">Условия использования</a>
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
+            <a href="#" className="hover:text-brand-dark transition-colors">Политика конфиденциальности</a>
+            <a href="#" className="hover:text-brand-dark transition-colors">Условия использования</a>
           </div>
         </div>
       </div>

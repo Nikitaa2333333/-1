@@ -22,17 +22,24 @@ export const ScrollSequence = () => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
         const img = imagesRef.current[Math.min(Math.max(0, index), FRAME_COUNT - 1)];
-        if (!canvas || !ctx || !img?.complete) return;
+
+        if (!canvas || !ctx || !img?.complete || img.naturalWidth === 0) return;
 
         const cW = canvas.width, cH = canvas.height;
-        const iR = img.width / img.height, cR = cW / cH;
+        const iW = img.naturalWidth, iH = img.naturalHeight;
+
+        // Логика "Cover": заполняем весь экран без полей
+        const iR = iW / iH, cR = cW / cH;
         let dW: number, dH: number;
 
         if (iR > cR) { dH = cH; dW = cH * iR; }
         else { dW = cW; dH = cW / iR; }
 
+        const x = (cW - dW) / 2;
+        const y = (cH - dH) / 2;
+
         ctx.clearRect(0, 0, cW, cH);
-        ctx.drawImage(img, (cW - dW) / 2, (cH - dH) / 2, dW, dH);
+        ctx.drawImage(img, x, y, dW, dH);
     }, []);
 
     const resize = useCallback(() => {
@@ -92,102 +99,123 @@ export const ScrollSequence = () => {
     const opB = op(0.25, 0.45); const yB = y(0.25, 0.45);
     const opC = op(0.50, 0.70); const yC = y(0.50, 0.70);
     const opD = op(0.75, 0.98); const yD = y(0.75, 0.98);
-    const hintOp = useTransform(smooth, [0, 0.06], [1, 0]);
+
 
     /* ── RENDER ──────────────────────────────────────── */
     return (
-        <div ref={containerRef} className="h-[400vh] w-full bg-[#050505] relative">
+        <div ref={containerRef} className="h-[400vh] w-full bg-[#B68D8A] relative">
 
 
 
             {/* Sticky scene */}
-            <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-[#050505]">
-                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
+            <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-[#B68D8A]">
+                {/* Мягкая виньетка для бесшовности */}
+                <div className="absolute inset-0 z-10 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(182,141,138,0.4)_100%)]" />
+
+                <canvas
+                    ref={canvasRef}
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                />
 
                 {/* ── Beat A: Hero (0-20%) ── */}
-                <motion.div style={{ opacity: opA, y: yA }} className="absolute inset-0 flex flex-col justify-center items-center p-6 md:p-12 pointer-events-none text-center">
-                    <div className="relative z-10 max-w-3xl flex flex-col items-center">
+                <motion.div style={{ opacity: opA, y: yA }} className="absolute inset-0 flex flex-col justify-center items-center px-[10%] pointer-events-none text-center">
+                    <div className="relative z-10 max-w-4xl">
                         {/* Glow halo */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/15 blur-[100px] rounded-full -z-10" />
+                        <div
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] -z-10 mix-blend-screen"
+                            style={{
+                                background: 'radial-gradient(circle, #FF0080 0%, rgba(255, 0, 128, 0) 70%)',
+                                filter: 'blur(80px)',
+                                opacity: 1
+                            }}
+                        />
 
-                        <h1 className="font-dela text-[clamp(36px,9vw,100px)] leading-[1.1] text-white mb-6 whitespace-nowrap px-4">
-                            Привет!<br />Это Апельсинка
+                        <h1 className="font-dela text-[clamp(32px,7vw,80px)] leading-[1.1] text-white mb-8">
+                            Привет, это «Апельсинка»
                         </h1>
-                        <p className="font-sans text-xl md:text-3xl text-white font-medium max-w-lg leading-snug">
-                            Свежая ягода в бельгийском шоколаде. Полностью ручная работа.
+                        <p className="font-sans text-lg md:text-2xl text-white font-medium leading-relaxed max-w-2xl mx-auto">
+                            Свежая ягода в бельгийском шоколаде, полностью ручная работа.<br className="hidden md:block" />
+                            А ещё — смузи, фреши и настоящий заряд витаминов из спелых фруктов каждый день.
                         </p>
                     </div>
                 </motion.div>
 
                 {/* ── Beat B: Шоколад (25-45%) ── */}
-                <motion.div style={{ opacity: opB, y: yB }} className="absolute inset-0 flex flex-col justify-center items-end p-6 md:p-12 pointer-events-none text-right">
-                    <div className="relative z-10 max-w-2xl">
+                <motion.div style={{ opacity: opB, y: yB }} className="absolute inset-0 flex flex-col justify-center items-center px-[10%] pointer-events-none text-center">
+                    <div className="relative z-10 max-w-3xl">
                         {/* Glow halo */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/40 blur-[100px] rounded-full -z-10" />
+                        <div
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] -z-10 mix-blend-screen"
+                            style={{
+                                background: 'radial-gradient(circle, #FF0080 0%, rgba(255, 0, 128, 0) 70%)',
+                                filter: 'blur(80px)',
+                                opacity: 1
+                            }}
+                        />
 
-                        <span className="inline-block text-brand-hot font-bold text-sm mb-4">Состав</span>
-                        <h2 className="font-dela text-[clamp(36px,8vw,90px)] leading-[1.1] text-white mb-6 px-4">
-                            Бельгийский<br />
-                            <span className="text-brand-hot">шоколад</span>
+                        <span className="inline-block text-[#FFEA00] font-bold text-sm md:text-base mb-6 tracking-widest">состав</span>
+                        <h2 className="font-dela text-[clamp(36px,8vw,90px)] leading-[1.1] text-white mb-8">
+                            Бельгийский <span className="text-[#FFEA00]">шоколад</span>
                         </h2>
-                        <p className="font-sans text-xl md:text-3xl text-white font-medium max-w-lg ml-auto leading-snug">
+                        <p className="font-sans text-xl md:text-3xl text-white font-medium leading-relaxed max-w-2xl mx-auto">
                             Callebaut — выбор лучших кондитеров мира.
                         </p>
                     </div>
                 </motion.div>
 
                 {/* ── Beat C: Свежесть (50-70%) ── */}
-                <motion.div style={{ opacity: opC, y: yC }} className="absolute inset-0 flex flex-col justify-center items-start p-6 md:p-12 pointer-events-none text-left">
-                    <div className="relative z-10 max-w-2xl">
+                <motion.div style={{ opacity: opC, y: yC }} className="absolute inset-0 flex flex-col justify-center items-center px-[10%] pointer-events-none text-center">
+                    <div className="relative z-10 max-w-3xl">
                         {/* Glow halo */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/40 blur-[100px] rounded-full -z-10" />
+                        <div
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] -z-10 mix-blend-screen"
+                            style={{
+                                background: 'radial-gradient(circle, #FF0080 0%, rgba(255, 0, 128, 0) 70%)',
+                                filter: 'blur(80px)',
+                                opacity: 1
+                            }}
+                        />
 
-                        <span className="inline-block text-brand-hot font-bold text-sm mb-4">Свежесть</span>
-                        <h2 className="font-dela text-[clamp(36px,8vw,90px)] leading-[1.1] text-white mb-6 px-4">
-                            Собрана<br />
-                            <span className="text-brand-hot">сегодня</span>
+                        <span className="inline-block text-[#FFEA00] font-bold text-sm md:text-base mb-6 tracking-widest">свежесть</span>
+                        <h2 className="font-dela text-[clamp(36px,8vw,90px)] leading-[1.1] text-white mb-8">
+                            Собрана <span className="text-[#FFEA00]">сегодня</span>
                         </h2>
-                        <p className="font-sans text-xl md:text-3xl text-white font-medium max-w-lg leading-snug">
+                        <p className="font-sans text-xl md:text-3xl text-white font-medium leading-relaxed max-w-2xl mx-auto">
                             Никакой заморозки — только спелая ягода.
                         </p>
                     </div>
                 </motion.div>
 
                 {/* ── Beat D: Заказ (75-98%) ── */}
-                <motion.div style={{ opacity: opD, y: yD }} className="absolute inset-0 flex flex-col justify-end items-center p-6 md:p-12 pb-32 md:pb-40 pointer-events-none text-center">
-                    <div className="relative z-10 max-w-2xl flex flex-col items-center">
+                <motion.div style={{ opacity: opD, y: yD }} className="absolute inset-0 flex flex-col justify-center items-center px-[10%] pointer-events-none text-center">
+                    <div className="relative z-10 max-w-4xl">
                         {/* Glow halo */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-brand-hot/40 blur-[100px] rounded-full -z-10" />
+                        <div
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] -z-10 mix-blend-screen"
+                            style={{
+                                background: 'radial-gradient(circle, #FF0080 0%, rgba(255, 0, 128, 0) 70%)',
+                                filter: 'blur(80px)',
+                                opacity: 1
+                            }}
+                        />
 
-                        <h2 className="font-dela text-[clamp(40px,10vw,100px)] leading-[1.1] text-white mb-6 px-4">
-                            Сделай<br />
-                            <span className="text-brand-hot">заказ</span>
+                        <h2 className="font-dela text-[clamp(36px,8vw,80px)] leading-[1.1] text-white mb-8">
+                            Сделай <span className="text-[#FFEA00]">заказ</span>
                         </h2>
-                        <p className="font-sans text-xl md:text-3xl text-white font-medium leading-snug">
-                            Доставим за 60 минут к твоей двери.
+                        <p className="font-sans text-lg md:text-2xl text-white font-medium leading-relaxed max-w-2xl mx-auto">
+                            Приготовим за 60 минут и доставим к твоей двери.
                         </p>
                     </div>
                 </motion.div>
 
-                {/* ── Scroll Hint ── */}
-                <motion.div
-                    style={{ opacity: hintOp }}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
-                >
-                    <span className="text-[10px] font-bold text-white/30">Листай</span>
-                    <motion.div
-                        animate={{ y: [0, 8, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-                        className="w-0.5 h-10 bg-gradient-to-b from-brand-hot to-transparent"
-                    />
-                </motion.div>
 
-                {/* ── FIXED BUTTON "ВЫБРАТЬ КЛУБНИКУ" ── */}
+
+                {/* ── FIXED BUTTON "ВЫБЕРИ СВОЙ ВКУС" ── */}
                 <a
-                    href="#order"
-                    className="absolute bottom-6 left-6 right-6 text-center md:left-auto md:bottom-10 md:right-10 md:w-auto z-50 bg-white text-brand-dark py-5 px-8 md:py-4 rounded-full font-sans font-bold text-base md:text-lg hover:bg-brand-pink transition-colors"
+                    href="#products"
+                    className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 bg-white text-brand-dark py-5 px-10 rounded-full font-sans font-bold text-lg hover:bg-brand-pink transition-all active:scale-95 shadow-2xl whitespace-nowrap pointer-events-auto"
                 >
-                    Выбрать клубнику
+                    Выбери свой вкус
                 </a>
 
             </div>
