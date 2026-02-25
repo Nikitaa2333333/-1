@@ -25,7 +25,7 @@ const TruckIcon = () => (
 
 export const Manifesto = () => {
   return (
-    <section className="bg-brand-hot text-white py-32 px-4 overflow-hidden relative">
+    <section className="bg-brand-hot text-white py-16 md:py-24 px-4 overflow-hidden relative">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <pattern id="heart-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -41,18 +41,18 @@ export const Manifesto = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="space-y-8"
+          className="space-y-3"
         >
           <p className="font-dela text-white text-xl">
             О нас
           </p>
 
-          <h2 className="font-dela text-[clamp(28px,5vw,56px)] leading-[1.2] max-w-5xl mx-auto mb-12">
+          <h2 className="font-dela text-[clamp(24px,5vw,56px)] leading-[1.2] max-w-5xl mx-auto mb-4">
             Готовим самую вкусную клубнику<StrawberryIcon /> в шоколаде в центре Москвы.<br />
             <span className="text-brand-dark">Доступен самовывоз или быстрая доставка<TruckIcon /> прямо к двери к 8 Марта.</span>
           </h2>
 
-          <div className="max-w-4xl mx-auto text-left space-y-6 font-sans text-xl md:text-2xl leading-relaxed opacity-90 pt-8">
+          <div className="max-w-4xl mx-auto text-left space-y-6 font-sans text-xl md:text-2xl leading-relaxed opacity-90 pt-4">
             <p>
               <strong className="text-brand-dark">«Апельсинка»</strong> — это проект, который родился в 2025 году и впервые радовал гостей на фестивале «Лето» в Москве.
             </p>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Send } from "lucide-react";
+import { X, Send } from "lucide-react";
 
 const products = [
   {

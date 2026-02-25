@@ -63,7 +63,7 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-brand-dark/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-brand-dark/40 font-sans text-sm text-center md:text-left">
-          <p>© 2024 Апельсинка. Все права защищены.</p>
+          <p>© 2026 Апельсинка. Все права защищены.</p>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
             <a href="#" className="hover:text-brand-dark transition-colors">Политика конфиденциальности</a>
             <a href="#" className="hover:text-brand-dark transition-colors">Условия использования</a>
