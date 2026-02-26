@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -16,34 +16,37 @@ export const Footer = () => {
 
           <div className="space-y-6">
             <h3 className="font-dela text-3xl mb-8">Контакты</h3>
-            <div className="flex items-start gap-4">
-              <MapPin className="w-8 h-8 text-brand-hot shrink-0" />
-              <div className="space-y-4">
+            <div className="space-y-8">
+              <div className="flex items-start gap-4">
+                <MapPin className="w-8 h-8 text-brand-hot shrink-0" />
                 <div>
                   <p className="font-sans text-xl font-bold">Наш адрес</p>
                   <p className="text-brand-dark/70 font-sans text-lg">
                     Украинский бульвар, 8, строение 1
                   </p>
                 </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <Clock className="w-8 h-8 text-brand-hot shrink-0" />
                 <div>
                   <p className="font-sans text-xl font-bold">Режим работы</p>
                   <p className="text-brand-dark/70 font-sans text-lg">
                     Ежедневно с 9:00 до 20:00
                   </p>
                 </div>
-                <a
-                  href="https://yandex.ru/maps/?text=Украинский+бульвар+8с1+Москва"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-brand-hot text-white rounded-xl font-bold hover:bg-brand-dark transition-all mt-2"
-                >
-                  <MapPin className="w-5 h-5" />
-                  Построить маршрут
-                </a>
               </div>
+
+              <a
+                href="https://yandex.ru/maps/?text=Украинский+бульвар+8с1+Москва"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-hot text-white rounded-xl font-bold hover:bg-brand-dark transition-all mt-2"
+              >
+                <MapPin className="w-5 h-5" />
+                Построить маршрут
+              </a>
             </div>
-
-
           </div>
 
           <div className="space-y-6">
