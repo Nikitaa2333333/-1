@@ -22,7 +22,7 @@ export const Features = () => {
   return (
     <section className="py-24 bg-brand-cream relative">
       <div className="container mx-auto px-4">
-        <div className="flex md:grid md:grid-cols-3 gap-6 md:gap-12 overflow-x-auto md:overflow-x-visible pb-8 md:pb-0 snap-x snap-mandatory no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex md:grid md:grid-cols-3 gap-6 md:gap-12 overflow-x-auto md:overflow-x-visible pb-8 md:pb-0 snap-x snap-mandatory no-scrollbar">
           {features.map((feature, idx) => (
             <div
               key={idx}

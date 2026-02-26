@@ -84,7 +84,7 @@ export const ProductGrid = () => {
         </div>
 
         {/* Переключатель категорий */}
-        <div className="flex overflow-x-auto no-scrollbar justify-start md:justify-center gap-2 mb-12 max-w-5xl mx-auto px-4 -mx-4 pb-4">
+        <div className="flex overflow-x-auto no-scrollbar gap-2 mb-12 pb-4 md:flex-wrap md:justify-center px-4">
           {categories.map((cat) => (
             <button
               key={cat.id}
