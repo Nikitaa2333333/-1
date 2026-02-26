@@ -16,11 +16,11 @@ export const Marquee = () => {
   return (
     <div className="bg-brand-hot text-white py-4 md:py-5 overflow-hidden border-y-[3px] border-brand-dark rotate-[-1deg] z-20 relative w-screen my-12 shadow-2xl">
       <motion.div
-        className="flex whitespace-nowrap"
+        className="flex whitespace-nowrap w-max"
         animate={{ x: ["0%", "-50%"] }}
         transition={{
           repeat: Infinity,
-          duration: 8,
+          duration: 30,
           ease: "linear"
         }}
       >
