@@ -22,19 +22,22 @@ export const Features = () => {
   return (
     <section className="py-24 bg-brand-cream relative">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+        <div className="flex md:grid md:grid-cols-3 gap-6 md:gap-12 overflow-x-auto md:overflow-x-visible pb-8 md:pb-0 snap-x snap-mandatory no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
           {features.map((feature, idx) => (
             <div
               key={idx}
-              className="bg-white px-8 py-10 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-brand-pink/30 flex flex-col items-center"
+              className="flex-shrink-0 w-[85vw] md:w-auto snap-center bg-white px-6 py-8 md:px-8 md:py-10 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-brand-pink/30 flex flex-col items-center"
             >
               <div className="flex justify-center mb-6">
-                <div className="bg-brand-pink/10 p-6 rounded-full">
-                  {feature.icon}
+                <div className="bg-brand-pink/10 p-4 md:p-6 rounded-full">
+                  {/* Контейнер иконки — уменьшаем на мобильных */}
+                  <div className="scale-75 md:scale-100">
+                    {feature.icon}
+                  </div>
                 </div>
               </div>
-              <h3 className="font-dela text-[clamp(18px,4vw,24px)] mb-4 text-brand-dark">{feature.title}</h3>
-              <p className="text-brand-dark/70 font-sans leading-relaxed">
+              <h3 className="font-dela text-[18px] md:text-[24px] mb-3 md:mb-4 text-brand-dark">{feature.title}</h3>
+              <p className="text-brand-dark/70 font-sans leading-relaxed text-sm md:text-base">
                 {feature.description}
               </p>
             </div>

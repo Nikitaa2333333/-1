@@ -84,12 +84,12 @@ export const ProductGrid = () => {
         </div>
 
         {/* Переключатель категорий */}
-        <div className="flex flex-wrap justify-center gap-3 mb-16 max-w-5xl mx-auto">
+        <div className="flex overflow-x-auto no-scrollbar justify-start md:justify-center gap-2 mb-12 max-w-5xl mx-auto px-4 -mx-4 pb-4">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-6 py-3 rounded-2xl font-bold font-sans transition-all duration-300 transform active:scale-95 ${activeCategory === cat.id
+              className={`whitespace-nowrap px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl font-bold font-sans text-sm md:text-base transition-all duration-300 transform active:scale-95 flex-shrink-0 ${activeCategory === cat.id
                 ? "bg-brand-hot text-white shadow-lg shadow-brand-hot/20 scale-105"
                 : "bg-white text-brand-dark hover:bg-brand-pink/20 border border-brand-pink/20"
                 }`}
@@ -102,7 +102,7 @@ export const ProductGrid = () => {
         {/* Сетка товаров */}
         <motion.div
           layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+          className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8"
         >
           <AnimatePresence mode="popLayout">
             {filteredProducts.map((product) => (
@@ -114,10 +114,10 @@ export const ProductGrid = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
                 whileHover={{ y: -10 }}
-                className="group bg-white rounded-[2rem] overflow-hidden shadow-xl flex flex-col border border-brand-pink/5"
+                className="group bg-white rounded-2xl md:rounded-[2rem] overflow-hidden shadow-md md:shadow-xl flex flex-col border border-brand-pink/5"
               >
-                <div className="relative h-64 overflow-hidden">
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors z-10"></div>
+                <div className="relative h-40 md:h-64 overflow-hidden">
+                  <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors z-10"></div>
                   <img
                     src={product.image}
                     alt={product.name}
@@ -125,43 +125,40 @@ export const ProductGrid = () => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   {product.oldPrice && (
-                    <div className="absolute top-4 left-4 z-20 bg-brand-hot text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20 bg-brand-hot text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold shadow-lg">
                       SALE
                     </div>
                   )}
                 </div>
 
-                <div className="p-6 flex flex-col flex-grow space-y-4">
-                  <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                      <div className="flex flex-col">
-                        <h3 className="font-dela text-lg text-brand-dark leading-tight group-hover:text-brand-hot transition-colors">
-                          {product.name}
-                        </h3>
-                        <span className="text-brand-dark/40 font-sans text-xs mt-1 font-medium italic">
-                          {product.weight}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="bg-brand-cream text-brand-dark font-bold px-3 py-1 rounded-lg text-sm whitespace-nowrap shadow-sm">
-                          {product.price}
-                        </span>
-                        {product.oldPrice && (
-                          <span className="text-brand-dark/30 line-through text-xs font-bold px-1">
-                            {product.oldPrice}
-                          </span>
-                        )}
-                      </div>
+                <div className="p-3 md:p-6 flex flex-col flex-grow space-y-2 md:space-y-4">
+                  <div className="space-y-1 md:space-y-4">
+                    <div className="flex flex-col gap-1">
+                      <h3 className="font-dela text-sm md:text-lg text-brand-dark leading-tight group-hover:text-brand-hot transition-colors line-clamp-2 md:line-clamp-none">
+                        {product.name}
+                      </h3>
+                      <span className="text-brand-dark/40 font-sans text-[10px] md:text-xs font-medium italic">
+                        {product.weight}
+                      </span>
                     </div>
-                    <p className="text-brand-dark/60 font-sans text-sm line-clamp-2">{product.desc}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-brand-cream text-brand-dark font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-lg text-xs md:text-sm whitespace-nowrap shadow-sm">
+                        {product.price}
+                      </span>
+                      {product.oldPrice && (
+                        <span className="text-brand-dark/30 line-through text-[10px] md:text-xs font-bold">
+                          {product.oldPrice}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mt-auto pt-2">
                     <button
                       onClick={() => setSelectedProduct(product)}
-                      className="block w-full py-4 bg-white border-2 border-brand-dark rounded-xl font-bold text-center text-sm md:text-base hover:bg-brand-dark hover:text-white active:scale-[0.98] transition-all shadow-sm"
+                      className="block w-full py-2.5 md:py-4 bg-white border md:border-2 border-brand-dark rounded-xl font-bold text-center text-[10px] md:text-base hover:bg-brand-dark hover:text-white active:scale-[0.98] transition-all shadow-sm"
                     >
-                      Оформить заказ
+                      Купить
                     </button>
                   </div>
                 </div>
