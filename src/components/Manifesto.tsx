@@ -62,12 +62,26 @@ export const Manifesto = () => {
             <p>
               Мы верим, что витамины, фрукты и ягоды должны быть доступны каждому, поэтому создаём вкусные и полезные продукты: свежую клубнику в бельгийском шоколаде, смузи, фреши и другие фруктовые лакомства.
             </p>
-            <p>
+            <p className="text-brand-dark/80">
               Наша миссия — дарить ощущение летнего удовольствия каждый день, независимо от сезона.
             </p>
-            <p className="italic text-brand-dark font-medium">
-              «Апельсинку» высоко оценили в городе: о нас публиковались статьи и материалы в СМИ, и мы с гордостью делимся ссылками на публикации и обзоры.
-            </p>
+
+            <div className="pt-8 flex flex-col items-center sm:items-start">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-brand-dark/20 rounded-full blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
+                <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white overflow-hidden shadow-2xl transform transition-transform duration-500 group-hover:scale-105">
+                  <img
+                    src="/assets/founders.jpg"
+                    alt="Дмитрий и Гахара Горбачевы"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 text-center sm:text-left">
+                <p className="font-dela text-lg text-brand-dark">Дмитрий и Гахара Горбачевы</p>
+                <p className="text-sm font-medium opacity-70 italic tracking-wider">Основатели «Апельсинки»</p>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

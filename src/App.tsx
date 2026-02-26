@@ -1,3 +1,4 @@
+import { PromoBanner } from "@/components/PromoBanner";
 import { ScrollSequence } from "@/components/ScrollSequence";
 import { Manifesto } from "@/components/Manifesto";
 import { Features } from "@/components/Features";
@@ -13,6 +14,7 @@ export function App() {
       <Marquee />
       <Manifesto />
       <Features />
+      <PromoBanner />
       <ProductGrid />
       <OrderCTA />
       <Footer />

@@ -129,7 +129,7 @@ export const ScrollSequence = () => {
                                 opacity: 1
                             }}
                         />
-                        <h1 className="font-dela text-[clamp(32px,7vw,80px)] leading-[1.1] text-white mb-8">Привет, это «Апельсинка»</h1>
+                        <h1 className="font-dela text-[clamp(32px,7vw,80px)] leading-[1.1] text-white mb-8">Привет, это Апельсинка!</h1>
                         <p className="font-sans text-lg md:text-2xl text-white font-medium max-w-2xl mx-auto">
                             Свежая ягода в бельгийском шоколаде, полностью ручная работа.<br className="hidden md:block" />
                             А ещё — смузи, фреши и настоящий заряд витаминов из спелых фруктов каждый день.
