@@ -20,13 +20,13 @@ const features = [
 
 export const Features = () => {
   return (
-    <section id="features" className="py-24 bg-brand-cream relative">
-      <div className="container mx-auto px-4">
-        <div className="flex md:grid md:grid-cols-3 gap-6 md:gap-12 overflow-x-auto md:overflow-x-visible pb-8 md:pb-0 snap-x snap-mandatory no-scrollbar">
+    <section id="features" className="pt-24 pb-12 bg-brand-cream relative">
+      <div className="container mx-auto">
+        <div className="flex w-full overflow-x-auto gap-4 px-4 pb-8 md:grid md:grid-cols-3 md:gap-12 md:overflow-x-visible md:pb-0 snap-x snap-mandatory no-scrollbar md:px-4">
           {features.map((feature, idx) => (
             <div
               key={idx}
-              className="flex-shrink-0 w-[85vw] md:w-auto snap-center bg-white px-6 py-8 md:px-8 md:py-10 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-brand-pink/30 flex flex-col items-center"
+              className="w-[85vw] flex-none snap-center md:w-auto bg-white px-6 py-8 md:px-8 md:py-10 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-brand-pink/30 flex flex-col items-center"
             >
               <div className="flex justify-center mb-6">
                 <div className="bg-brand-pink/10 p-4 md:p-6 rounded-full">
