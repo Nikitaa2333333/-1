@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Phone, User, Tag, Package, Bike, ChevronLeft, CheckCircle2 } from "lucide-react";
@@ -35,6 +35,20 @@ export const CheckoutPage = () => {
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Загружаем сохранённые данные при открытии формы
+    useEffect(() => {
+        const saved = localStorage.getItem("apelsinka_user_info");
+        if (saved) {
+            try {
+                const { name, phone, address, deliveryType } = JSON.parse(saved);
+                if (name) setName(name);
+                if (phone) setPhone(phone);
+                if (address) setAddress(address);
+                if (deliveryType) setDeliveryType(deliveryType);
+            } catch { }
+        }
+    }, []);
+
     const deliveryCost = deliveryType === "pickup" ? 0 : DELIVERY_ZONES[zone].price;
     const discount = promoApplied ? Math.round(totalPrice * promoApplied / 100) : 0;
     const finalTotal = totalPrice - discount + deliveryCost;
@@ -55,6 +69,8 @@ export const CheckoutPage = () => {
         if (!isFormValid) return;
         setIsSubmitting(true);
         await new Promise(r => setTimeout(r, 1000));
+        // Сохраняем данные пользователя для следующего заказа
+        localStorage.setItem("apelsinka_user_info", JSON.stringify({ name, phone, address, deliveryType }));
         setIsSubmitting(false);
         setStep("success");
         clearCart();
