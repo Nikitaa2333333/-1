@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send } from "lucide-react";
+import { useCart } from "../context/CartContext";
 
 const categories = [
   { id: 'all', name: 'Все' },
@@ -9,7 +9,7 @@ const categories = [
   { id: 'donuts', name: 'Пончики' },
   { id: 'fresh', name: 'Напитки и фреши' },
   { id: 'raspberry', name: 'Малина в шоколаде' },
-  { id: 'sweets', name: 'Сладости' },
+  { id: 'sweets', name: 'Сублимированные фрукты' },
   { id: 'oriental', name: 'Восточные сладости' }
 ];
 
@@ -62,14 +62,13 @@ const products = [
 
 export const ProductGrid = () => {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const { addToCart } = useCart();
 
   const filteredProducts = useMemo(() => {
     if (activeCategory === 'all') return products;
     return products.filter(p => p.category === activeCategory);
   }, [activeCategory]);
 
-  const botUsername = "apelsinkabarbot";
 
   return (
     <section className="py-24 bg-brand-pink/10 relative" id="products">
@@ -155,10 +154,11 @@ export const ProductGrid = () => {
 
                   <div className="mt-auto pt-2">
                     <button
-                      onClick={() => setSelectedProduct(product)}
-                      className="block w-full py-2.5 md:py-4 bg-white border md:border-2 border-brand-dark rounded-xl font-bold text-center text-[10px] md:text-base hover:bg-brand-dark hover:text-white active:scale-[0.98] transition-all shadow-sm"
+                      onClick={() => addToCart(product)}
+                      className="block w-full py-2.5 md:py-4 bg-white border md:border-2 border-brand-dark rounded-xl font-bold text-center text-[10px] md:text-base hover:bg-brand-dark hover:text-white active:scale-[0.98] transition-all shadow-sm group/btn relative overflow-hidden"
                     >
-                      Купить
+                      <span className="relative z-10">Купить</span>
+                      <div className="absolute inset-0 bg-brand-dark translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
                     </button>
                   </div>
                 </div>
@@ -174,74 +174,6 @@ export const ProductGrid = () => {
         )}
       </div>
 
-      {/* Окно оформления заказа в Telegram */}
-      <AnimatePresence>
-        {selectedProduct && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedProduct(null)}
-              className="fixed inset-0 bg-brand-dark/40 z-[100] backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[101] px-4"
-            >
-              <div className="bg-white rounded-[2rem] p-8 shadow-2xl relative border border-brand-pink/20">
-                <button
-                  onClick={() => setSelectedProduct(null)}
-                  className="absolute top-4 right-4 p-2 text-brand-dark/50 hover:text-brand-dark transition-colors rounded-full hover:bg-brand-pink/10"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-
-                <div className="text-center space-y-6 pt-4">
-                  <div className="w-20 h-20 bg-brand-pink/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Send className="w-10 h-10 text-brand-hot" />
-                  </div>
-
-                  <h3 className="font-dela text-2xl text-brand-dark leading-tight">
-                    Оформление заказа
-                  </h3>
-
-                  <div className="space-y-4">
-                    <p className="font-sans text-brand-dark/80 text-lg leading-relaxed">
-                      Принимаем заказы через нашего бота. Это самый быстрый способ — к вам сразу подключится менеджер.
-                    </p>
-                    <div className="p-4 bg-brand-pink/5 rounded-2xl border border-brand-pink/10">
-                      <p className="text-brand-hot font-bold text-lg">{selectedProduct.name}</p>
-                      <p className="text-brand-dark/40 text-sm">{selectedProduct.weight} • {selectedProduct.price}</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4">
-                    <a
-                      href={`https://t.me/${botUsername}?start=prod_${selectedProduct.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-3 w-full py-4 bg-[#24A1DE] text-white rounded-xl font-bold text-lg hover:bg-[#208aba] active:scale-95 transition-all shadow-lg shadow-[#24A1DE]/20"
-                      onClick={() => setSelectedProduct(null)}
-                    >
-                      <Send className="w-5 h-5" />
-                      Написать в Telegram
-                    </a>
-                    <button
-                      onClick={() => setSelectedProduct(null)}
-                      className="mt-4 text-brand-dark/50 hover:text-brand-dark font-sans text-sm font-medium transition-colors"
-                    >
-                      Вернуться в каталог
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </section>
   );
 };

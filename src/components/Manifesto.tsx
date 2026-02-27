@@ -25,7 +25,7 @@ const TruckIcon = () => (
 
 export const Manifesto = () => {
   return (
-    <section className="bg-brand-hot text-white py-16 md:py-24 px-4 overflow-hidden relative">
+    <section className="bg-brand-hot text-white py-16 md:py-24 px-4 overflow-hidden relative" id="about">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <pattern id="heart-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -54,10 +54,10 @@ export const Manifesto = () => {
 
           <div className="max-w-4xl mx-auto text-left space-y-6 font-sans text-xl md:text-2xl leading-relaxed opacity-90 pt-4">
             <p>
-              <strong className="text-brand-dark">«Апельсинка»</strong> — это проект, который родился в 2025 году и впервые радовал гостей на фестивале «Лето» в Москве.
+              <strong className="text-brand-dark">«Апельсинка»</strong> — проект, который родился в 2025 году и впервые радовал гостей на фестивале «Лето в Москве».
             </p>
             <p>
-              Идея принадлежит семье <strong className="text-brand-dark">Дмитрия и Гахары Горбачевых</strong> — людей, для которых здоровье, витамины, молодость, солнце и радость от маленьких удовольствий — это стиль жизни.
+              Проект создан людьми, для которых здоровье, витамины, молодость, солнце и радость от маленьких удовольствий — это стиль жизни.
             </p>
             <p>
               Мы верим, что витамины, фрукты и ягоды должны быть доступны каждому, поэтому создаём вкусные и полезные продукты: свежую клубнику в бельгийском шоколаде, смузи, фреши и другие фруктовые лакомства.
@@ -65,23 +65,6 @@ export const Manifesto = () => {
             <p className="text-brand-dark/80">
               Наша миссия — дарить ощущение летнего удовольствия каждый день, независимо от сезона.
             </p>
-
-            <div className="pt-8 flex flex-col items-center sm:items-start">
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-brand-dark/20 rounded-full blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
-                <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white overflow-hidden shadow-2xl transform transition-transform duration-500 group-hover:scale-105">
-                  <img
-                    src="/assets/founders.jpg"
-                    alt="Дмитрий и Гахара Горбачевы"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-              <div className="mt-4 text-center sm:text-left">
-                <p className="font-dela text-lg text-brand-dark">Дмитрий и Гахара Горбачевы</p>
-                <p className="text-sm font-medium opacity-70 italic tracking-wider">Основатели «Апельсинки»</p>
-              </div>
-            </div>
           </div>
         </motion.div>
       </div>
