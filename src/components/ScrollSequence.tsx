@@ -110,7 +110,7 @@ export const ScrollSequence = () => {
     const opD = op(0.75, 0.98); const yD = yTransform(0.75, 0.98);
 
     return (
-        <div ref={containerRef} className="h-[400vh] w-full bg-[#B68D8A] relative">
+        <div ref={containerRef} id="hero" className="h-[400vh] w-full bg-[#B68D8A] relative">
             <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-[#B68D8A]">
                 {/* Мягкая виньетка для бесшовности */}
                 <div className="absolute inset-0 z-10 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(182,141,138,0.4)_100%)]" />

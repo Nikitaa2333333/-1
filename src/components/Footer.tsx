@@ -1,4 +1,4 @@
-import { MapPin, Clock, Phone, ArrowUpRight } from "lucide-react";
+import { MapPin, Clock, Phone } from "lucide-react";
 
 export const Footer = () => {
   const navLinks = [
@@ -66,9 +66,8 @@ export const Footer = () => {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="group flex items-center gap-2 text-brand-dark/70 hover:text-brand-hot transition-colors"
+                    className="text-brand-dark/70 hover:text-brand-hot transition-colors"
                   >
-                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity -ml-6 group-hover:ml-0" />
                     {link.label}
                   </a>
                 </li>
@@ -114,7 +113,14 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-brand-dark/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-brand-dark/40 font-sans text-sm text-center md:text-left">
-          <p>© 2025 Апельсинка. Все права защищены.</p>
+          <div className="flex items-center gap-4">
+            <img
+              src="/assets/logo.png"
+              alt="Апельсинка"
+              className="h-10 object-contain opacity-70"
+            />
+            <p>© 2025 Апельсинка. Все права защищены.</p>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
             <a href="#" className="hover:text-brand-dark transition-colors">Политика конфиденциальности</a>
             <a href="#" className="hover:text-brand-dark transition-colors">Условия использования</a>

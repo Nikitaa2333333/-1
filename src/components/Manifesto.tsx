@@ -43,6 +43,13 @@ export const Manifesto = () => {
           viewport={{ once: true }}
           className="space-y-3"
         >
+          <div className="flex justify-center mb-4">
+            <img
+              src="/assets/logo.png"
+              alt="Апельсинка"
+              className="h-24 md:h-32 object-contain drop-shadow-2xl"
+            />
+          </div>
           <p className="font-dela text-white text-xl">
             О нас
           </p>
