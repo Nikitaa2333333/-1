@@ -1,12 +1,16 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { CheckoutModal } from "./CheckoutModal";
 
 export const CartDrawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    const navigate = useNavigate();
     const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart();
-    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+    const goToCheckout = () => {
+        onClose();
+        navigate("/checkout");
+    };
 
     return (
         <>
@@ -19,7 +23,7 @@ export const CartDrawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={onClose}
-                            className="fixed inset-0 bg-brand-dark/40 z-[120] backdrop-blur-sm"
+                            className="fixed inset-0 bg-brand-dark/60 z-[120]"
                         />
 
                         {/* Drawer */}
@@ -117,7 +121,7 @@ export const CartDrawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                                     </div>
                                     <button
                                         className="w-full py-4 bg-brand-hot text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand-hot/20 hover:bg-brand-dark transition-all active:scale-95"
-                                        onClick={() => setIsCheckoutOpen(true)}
+                                        onClick={goToCheckout}
                                     >
                                         Оформить заказ
                                     </button>
@@ -131,8 +135,6 @@ export const CartDrawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 )}
             </AnimatePresence>
 
-            {/* Checkout Modal */}
-            <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
         </>
     );
 };

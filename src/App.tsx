@@ -1,4 +1,5 @@
 import { useState, lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 import { PromoBanner } from "@/components/PromoBanner";
 import { ScrollSequence } from "@/components/ScrollSequence";
 import { Manifesto } from "@/components/Manifesto";
@@ -7,12 +8,12 @@ import { Footer } from "@/components/Footer";
 import { Marquee } from "@/components/Marquee";
 import { OrderCTA } from "@/components/OrderCTA";
 import { CartIcon } from "@/components/CartIcon";
+import { CheckoutPage } from "@/pages/CheckoutPage";
 
-// Lazy-load тяжёлых компонентов
 const ProductGrid = lazy(() => import("@/components/ProductGrid").then(m => ({ default: m.ProductGrid })));
 const CartDrawer = lazy(() => import("@/components/CartDrawer").then(m => ({ default: m.CartDrawer })));
 
-export function App() {
+function HomePage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   return (
@@ -28,11 +29,19 @@ export function App() {
       <OrderCTA />
       <Footer />
 
-      {/* Shopping Cart UI */}
       <CartIcon onClick={() => setIsCartOpen(true)} />
       <Suspense fallback={null}>
         <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       </Suspense>
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
+    </Routes>
   );
 }

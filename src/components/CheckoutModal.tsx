@@ -76,7 +76,7 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleClose}
-                        className="fixed inset-0 bg-brand-dark/50 z-[140] backdrop-blur-sm"
+                        className="fixed inset-0 bg-brand-dark/70 z-[140]"
                     />
 
                     <motion.div

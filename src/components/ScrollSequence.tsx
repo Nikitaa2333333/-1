@@ -63,23 +63,24 @@ export const ScrollSequence = () => {
         };
 
         const initLoad = async () => {
-            // 1. Грузим первый кадр для мгновенного показа (Critical Path)
+            // 1. Грузим первый кадр мгновенно
             await loadFrame(0);
             setIsLoaded(true);
 
-            // 2. Грузим первые 20 кадров быстро
+            // 2. Грузим первые 30 кадров — достаточно для плавного старта
             const urgentBatch = [];
-            for (let i = 1; i < 20; i++) urgentBatch.push(loadFrame(i));
+            for (let i = 1; i < 30; i++) urgentBatch.push(loadFrame(i));
             await Promise.all(urgentBatch);
 
-            // 3. Остальное догружаем пачками по 5, чтобы не блокировать сеть
-            const BATCH_SIZE = 5;
-            for (let i = 20; i < FRAME_COUNT; i += BATCH_SIZE) {
+            // 3. Остальные кадры — догружаем фоново с паузами, не блокируем UI
+            const BATCH_SIZE = 10;
+            for (let i = 30; i < FRAME_COUNT; i += BATCH_SIZE) {
                 const batch = [];
                 for (let j = 0; j < BATCH_SIZE && (i + j) < FRAME_COUNT; j++) {
                     batch.push(loadFrame(i + j));
                 }
                 await Promise.all(batch);
+                await new Promise(r => setTimeout(r, 80));
             }
         };
 
