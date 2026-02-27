@@ -51,12 +51,12 @@ const products = [
   { id: 27, category: 'oriental', name: "Финики в дубайском шоколаде", weight: "300 гр", price: "2 099 ₽", oldPrice: "2 799 ₽", image: "https://content2.flowwow-images.com/data/flowers/524x524/03/1771317988_97727503.jpg", desc: "Финики с фисташковой начинкой" },
 
   // Хот-доги
-  { id: 28, category: 'hotdogs', name: "Французский хот-дог", weight: "160 гр", price: "300 ₽", oldPrice: null, image: "/assets/french_dog.webp", desc: "Классический французский хот-дог в хрустящем багете с горчицей и кетчупом" },
-  { id: 29, category: 'hotdogs', name: "Датский хот-дог", weight: "160 гр", price: "430 ₽", oldPrice: null, image: "/assets/danish_dog.webp", desc: "Датский хот-дог с маринованными огурчиками, ремуладом и хрустящим луком" },
-  { id: 30, category: 'hotdogs', name: "BBQ Хот-дог", weight: "180 гр", price: "450 ₽", oldPrice: null, image: "/assets/bbq_dog.webp", desc: "Сытный BBQ хот-дог с пикантным соусом, беконом и сыром" },
+  { id: 28, category: 'hotdogs', name: "Французский хот-дог", weight: "160 гр", price: "300 ₽", oldPrice: null, image: "/assets/french_dog.jpg", desc: "Классический французский хот-дог в хрустящем багете с горчицей и кетчупом" },
+  { id: 29, category: 'hotdogs', name: "Датский хот-дог", weight: "160 гр", price: "430 ₽", oldPrice: null, image: "/assets/danish_dog.jpg", desc: "Датский хот-дог с маринованными огурчиками, ремуладом и хрустящим луком" },
+  { id: 30, category: 'hotdogs', name: "Сырный хот-дог", weight: "180 гр", price: "450 ₽", oldPrice: null, image: "/assets/cheese_dog.jpg", desc: "Сытный хот-дог с тягучим сыром и фирменным соусом" },
 
   // Пончики
-  { id: 31, category: 'donuts', name: "Пончики с сахарной пудрой (3 шт.)", weight: "150 гр", price: "250 ₽", oldPrice: null, image: "/assets/donuts.webp", desc: "Нежные и воздушные пончики, обильно посыпанные сахарной пудрой" }
+  { id: 31, category: 'donuts', name: "Пончики с сахарной пудрой (3 шт.)", weight: "150 гр", price: "250 ₽", oldPrice: null, image: "/assets/donuts.jpg", desc: "Нежные и воздушные пончики, обильно посыпанные сахарной пудрой" }
 ];
 
 export const ProductGrid = () => {
