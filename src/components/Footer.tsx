@@ -115,7 +115,7 @@ export const Footer = () => {
         <div className="border-t border-brand-dark/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-brand-dark/40 font-sans text-sm text-center md:text-left">
           <div className="flex items-center gap-4">
             <img
-              src="/assets/logo.png"
+              src="/assets/logo.webp"
               alt="Апельсинка"
               className="h-10 object-contain opacity-70"
             />

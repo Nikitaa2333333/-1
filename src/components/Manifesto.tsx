@@ -45,7 +45,7 @@ export const Manifesto = () => {
         >
           <div className="flex justify-center mb-4">
             <img
-              src="/assets/logo.png"
+              src="/assets/logo.webp"
               alt="Апельсинка"
               className="h-24 md:h-32 object-contain drop-shadow-2xl"
             />
