@@ -114,11 +114,15 @@ export const Footer = () => {
 
         <div className="border-t border-brand-dark/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-brand-dark/40 font-sans text-sm text-center md:text-left">
           <div className="flex items-center gap-4">
-            <img
-              src="/assets/logo.webp"
-              alt="Апельсинка"
-              className="h-10 object-contain opacity-70"
-            />
+            <div className="w-10 h-10 rounded-full bg-brand-cream border border-brand-dark/10 flex items-center justify-center overflow-hidden shrink-0">
+              <img
+                src="/assets/logo.webp"
+                alt="Апельсинка"
+                loading="lazy"
+                decoding="async"
+                className="w-[85%] h-[85%] object-contain"
+              />
+            </div>
             <p>© 2025 Апельсинка. Все права защищены.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">

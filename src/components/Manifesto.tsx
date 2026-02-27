@@ -44,11 +44,15 @@ export const Manifesto = () => {
           className="space-y-3"
         >
           <div className="flex justify-center mb-4">
-            <img
-              src="/assets/logo.webp"
-              alt="Апельсинка"
-              className="h-24 md:h-32 object-contain drop-shadow-2xl"
-            />
+            <div className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-white shadow-2xl flex items-center justify-center overflow-hidden">
+              <img
+                src="/assets/logo.webp"
+                alt="Апельсинка"
+                loading="lazy"
+                decoding="async"
+                className="w-[85%] h-[85%] object-contain"
+              />
+            </div>
           </div>
           <p className="font-dela text-white text-xl">
             О нас

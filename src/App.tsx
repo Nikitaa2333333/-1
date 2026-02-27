@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { PromoBanner } from "@/components/PromoBanner";
 import { ScrollSequence } from "@/components/ScrollSequence";
 import { Manifesto } from "@/components/Manifesto";
 import { Features } from "@/components/Features";
-import { ProductGrid } from "@/components/ProductGrid";
 import { Footer } from "@/components/Footer";
 import { Marquee } from "@/components/Marquee";
 import { OrderCTA } from "@/components/OrderCTA";
-import { CartDrawer } from "@/components/CartDrawer";
 import { CartIcon } from "@/components/CartIcon";
+
+// Lazy-load тяжёлых компонентов
+const ProductGrid = lazy(() => import("@/components/ProductGrid").then(m => ({ default: m.ProductGrid })));
+const CartDrawer = lazy(() => import("@/components/CartDrawer").then(m => ({ default: m.CartDrawer })));
 
 export function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -20,13 +22,17 @@ export function App() {
       <Manifesto />
       <Features />
       <PromoBanner />
-      <ProductGrid />
+      <Suspense fallback={<div className="py-24 bg-brand-pink/10" />}>
+        <ProductGrid />
+      </Suspense>
       <OrderCTA />
       <Footer />
 
       {/* Shopping Cart UI */}
       <CartIcon onClick={() => setIsCartOpen(true)} />
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <Suspense fallback={null}>
+        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      </Suspense>
     </div>
   );
 }

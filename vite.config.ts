@@ -16,6 +16,8 @@ export default defineConfig({
     },
   },
   build: {
+    cssCodeSplit: true,
+    assetsInlineLimit: 4096, // инлайн файлов < 4KB
     rollupOptions: {
       output: {
         manualChunks: {
