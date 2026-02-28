@@ -45,3 +45,28 @@ body {
     /* Chrome, Safari and Opera */
   }
 }
+
+/* Стили для подсказок Яндекса */
+.ymaps-2-1-79-suggest-container {
+  z-index: 99999 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 77, 148, 0.2) !important;
+  background: white !important;
+  overflow: hidden !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 14px !important;
+}
+
+.ymaps-2-1-79-suggest-item {
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  color: #1e1b1e !important;
+  transition: all 0.2s ease !important;
+}
+
+.ymaps-2-1-79-suggest-item:hover,
+.ymaps-2-1-79-suggest-item_selected_yes {
+  background: #fff0f6 !important;
+  color: #ff4d94 !important;
+}

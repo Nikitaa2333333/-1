@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Phone, User, Tag, Package, Bike, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { MapPin, Phone, User, Tag, Package, Bike, ChevronLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 
 const PROMO_CODES: Record<string, number> = {
@@ -13,6 +13,7 @@ const PROMO_CODES: Record<string, number> = {
 
 
 // text-base обязателен на iOS — иначе Safari зумит страницу при фокусе на input
+const STORE_COORDS = [55.746644, 37.565883];
 const inputClass = "w-full pl-10 pr-4 py-4 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-base focus:outline-none focus:border-brand-hot focus:bg-white transition-colors";
 
 export const CheckoutPage = () => {
@@ -29,6 +30,114 @@ export const CheckoutPage = () => {
     const [promoError, setPromoError] = useState("");
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null);
+    const [isCalculating, setIsCalculating] = useState(false);
+    const [manualDeliveryCost, setManualDeliveryCost] = useState<number | null>(null);
+    const mapRef = useRef<HTMLDivElement>(null);
+    const mapInstance = useRef<any>(null);
+
+    // Инициализация Yandex Maps Suggest с ожиданием загрузки и привязкой к режиму доставки
+    useEffect(() => {
+        if (deliveryType !== 'delivery') return;
+
+        let suggestInstance: any = null;
+        let attempts = 0;
+
+        const initSuggest = () => {
+            const ymaps = (window as any).ymaps;
+            const inputEl = document.getElementById("address-input");
+
+            if (!ymaps || !inputEl) {
+                if (attempts < 30) {
+                    attempts++;
+                    setTimeout(initSuggest, 400);
+                }
+                return;
+            }
+
+            ymaps.ready(() => {
+                try {
+                    // Если уже есть инстанс, не создаем дубликат
+                    suggestInstance = new ymaps.SuggestView("address-input", {
+                        results: 5,
+                        container: document.body
+                    });
+
+                    suggestInstance.events.add("select", (e: any) => {
+                        const selectedAddress = e.get("item").value;
+                        setAddress(selectedAddress);
+                        calculateDelivery(selectedAddress);
+                    });
+                } catch (err) {
+                    console.error("Yandex Suggest Error:", err);
+                }
+            });
+        };
+
+        const timer = setTimeout(initSuggest, 500);
+
+        return () => {
+            clearTimeout(timer);
+            suggestInstance = null;
+        };
+    }, [deliveryType]); // Переинициализируем при смене типа доставки
+
+    const calculateDelivery = async (targetAddress: string) => {
+        const ymaps = (window as any).ymaps;
+        if (!ymaps || !targetAddress.trim() || deliveryType === "pickup") return;
+
+        setIsCalculating(true);
+        try {
+            const route = await ymaps.route([STORE_COORDS, targetAddress]);
+            const distanceInKm = Math.round(route.getLength() / 1000 * 10) / 10;
+            setCalculatedDistance(distanceInKm);
+
+            // Работа с картой
+            if (mapRef.current) {
+                if (!mapInstance.current) {
+                    mapInstance.current = new ymaps.Map(mapRef.current, {
+                        center: STORE_COORDS,
+                        zoom: 12,
+                        controls: ['zoomControl', 'fullscreenControl']
+                    });
+                }
+
+                mapInstance.current.geoObjects.removeAll();
+
+                // Настраиваем внешний вид маршрута
+                route.getPaths().options.set({
+                    strokeColor: 'ff4d94',
+                    strokeWidth: 5,
+                    opacity: 0.8
+                });
+
+                mapInstance.current.geoObjects.add(route);
+
+                // Масштабируем
+                mapInstance.current.setBounds(route.getBounds(), {
+                    checkZoomRange: true,
+                    zoomMargin: 50
+                });
+            }
+
+            let cost = 500;
+            if (distanceInKm > 20) cost = 1500;
+            else if (distanceInKm > 10) cost = 1000;
+            else if (distanceInKm > 5) cost = 650;
+            else cost = 500;
+
+            setManualDeliveryCost(cost);
+        } catch (err) {
+            console.error("Route calculation error:", err);
+            setManualDeliveryCost(null);
+            setCalculatedDistance(null);
+            if (mapInstance.current) {
+                mapInstance.current.geoObjects.removeAll();
+            }
+        } finally {
+            setIsCalculating(false);
+        }
+    };
 
     // Загружаем сохранённые данные при открытии формы
     useEffect(() => {
@@ -38,16 +147,19 @@ export const CheckoutPage = () => {
                 const { name, phone, address, deliveryType } = JSON.parse(saved);
                 if (name) setName(name);
                 if (phone) setPhone(phone);
-                if (address) setAddress(address);
+                if (address) {
+                    setAddress(address);
+                    if (deliveryType === "delivery") calculateDelivery(address);
+                }
                 if (deliveryType) setDeliveryType(deliveryType);
             } catch { }
         }
     }, []);
 
-    const deliveryCost = deliveryType === "pickup" ? 0 : (totalPrice >= 10000 ? 0 : 500); // 500 рублей фиксированная стоимость или 0 если >= 10k
+    const deliveryCost = deliveryType === "pickup" ? 0 : (manualDeliveryCost || 0);
     const discount = promoApplied ? Math.round(totalPrice * promoApplied / 100) : 0;
     const finalTotal = totalPrice - discount + deliveryCost;
-    const isFormValid = name.trim() && phone.trim().length >= 6 && (deliveryType === "pickup" || address.trim());
+    const isFormValid = name.trim() && phone.trim().length >= 6 && (deliveryType === "pickup" || (address.trim() && !isCalculating));
 
     const applyPromo = () => {
         const code = promo.trim().toUpperCase();
@@ -165,14 +277,61 @@ export const CheckoutPage = () => {
                         {deliveryType === "delivery" && (
                             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
                                 <h2 className="font-dela text-base text-brand-dark">Адрес доставки</h2>
-                                <div className="relative">
+                                <div className="relative z-50">
                                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                                    <input type="text" placeholder="Улица, дом, квартира" value={address}
-                                        onChange={e => setAddress(e.target.value)} className={inputClass} />
+                                    <input
+                                        id="address-input"
+                                        type="text"
+                                        placeholder="Город, улица, дом"
+                                        value={address}
+                                        autoComplete="off"
+                                        onChange={e => {
+                                            setAddress(e.target.value);
+                                            // Если адрес очищен — сбрасываем расчеты
+                                            if (!e.target.value.trim()) {
+                                                setCalculatedDistance(null);
+                                                setManualDeliveryCost(null);
+                                                if (mapInstance.current) mapInstance.current.geoObjects.removeAll();
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            // Дополнительная проверка при потере фокуса, если не выбрали из списка
+                                            if (address.trim() && !calculatedDistance) {
+                                                calculateDelivery(address);
+                                            }
+                                        }}
+                                        className={inputClass}
+                                    />
+                                    {isCalculating && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <Loader2 className="w-4 h-4 text-brand-hot animate-spin" />
+                                        </div>
+                                    )}
                                 </div>
-                                <p className="text-xs text-gray-500 font-medium">
-                                    {totalPrice >= 10000 ? "Бесплатная доставка (от 10 000 ₽)" : "Стоимость доставки будет рассчитана менеджером после согласования заказа."}
-                                </p>
+
+                                {/* Карта Яндекса */}
+                                <div
+                                    className={`w-full overflow-hidden border border-brand-pink/20 bg-gray-50 transition-all duration-700 rounded-2xl ${address ? 'h-56 opacity-100 mt-2 shadow-inner' : 'h-0 opacity-0 mt-0'}`}
+                                >
+                                    <div ref={mapRef} className="w-full h-full" />
+                                </div>
+
+                                <div className="bg-brand-pink/5 p-3 rounded-xl border border-brand-pink/10">
+                                    {calculatedDistance ? (
+                                        <div className="flex justify-between items-center text-xs text-brand-dark mb-2">
+                                            <span className="font-bold">Расстояние:</span>
+                                            <span className="bg-white px-2 py-0.5 rounded-full border border-brand-pink/20 shadow-sm">{calculatedDistance} км</span>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-brand-dark font-bold mb-2">Тарифы (от Украинский б-р, 8с1):</p>
+                                    )}
+                                    <ul className="text-[10px] text-gray-500 space-y-0.5 font-medium">
+                                        <li className={calculatedDistance && calculatedDistance <= 5 ? "text-brand-hot font-bold" : ""}>• До 5 км — 500 ₽</li>
+                                        <li className={calculatedDistance && calculatedDistance > 5 && calculatedDistance <= 10 ? "text-brand-hot font-bold" : ""}>• От 5 до 10 км — 650 ₽</li>
+                                        <li className={calculatedDistance && calculatedDistance > 10 && calculatedDistance <= 20 ? "text-brand-hot font-bold" : ""}>• От 10 до 20 км — 1 000 ₽</li>
+                                        <li className={calculatedDistance && calculatedDistance > 20 ? "text-brand-hot font-bold" : ""}>• Более 20 км — 1 500 ₽</li>
+                                    </ul>
+                                </div>
                             </div>
                         )}
 
@@ -230,9 +389,9 @@ export const CheckoutPage = () => {
                             <div className="border-t border-gray-100 mt-3 pt-3 space-y-1">
                                 {deliveryType === "delivery" && (
                                     <div className="flex justify-between text-sm text-gray-400">
-                                        <span>Доставка</span>
-                                        <span className="text-right max-w-[50%]">
-                                            {totalPrice >= 10000 ? "Бесплатно" : "По согласованию"}
+                                        <span>Доставка {calculatedDistance ? `(${calculatedDistance} км)` : ""}</span>
+                                        <span className="text-right font-bold text-brand-dark">
+                                            {manualDeliveryCost ? `${manualDeliveryCost} ₽` : "Расчет..."}
                                         </span>
                                     </div>
                                 )}
