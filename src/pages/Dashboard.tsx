@@ -16,10 +16,12 @@ const ProductRow = ({ product, categories, onChange, onDelete }: any) => {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Пока мы работаем без сервера, делаем локальную превьюшку
-            const localUrl = URL.createObjectURL(file);
-            onChange({ ...product, image: localUrl });
-            alert("Фото загружено для предпросмотра! (Позже мы свяжем это с сервером для сохранения файла)");
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                onChange({ ...product, image: base64String });
+            };
+            reader.readAsDataURL(file);
         }
     };
 
