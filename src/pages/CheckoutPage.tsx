@@ -41,27 +41,30 @@ export const CheckoutPage = () => {
         if (deliveryType !== 'delivery') return;
 
         let suggestInstance: any = null;
-        let attempts = 0;
+        let checkInterval: any = null;
 
         const initSuggest = () => {
             const ymaps = (window as any).ymaps;
-            const inputEl = document.getElementById("address-input");
-
-            if (!ymaps || !inputEl) {
-                if (attempts < 30) {
-                    attempts++;
-                    setTimeout(initSuggest, 400);
-                }
-                return;
-            }
+            if (!ymaps) return;
 
             ymaps.ready(() => {
+                const inputEl = document.getElementById("address-input");
+                if (!inputEl) return;
+
                 try {
-                    // Если уже есть инстанс, не создаем дубликат
+                    // Если инстанс уже есть, чистим его перед пересозданием
+                    if (suggestInstance) {
+                        suggestInstance.destroy();
+                    }
+
                     suggestInstance = new ymaps.SuggestView("address-input", {
-                        results: 5,
-                        container: document.body
+                        results: 5
                     });
+
+                    // Явно задаем z-index через JS, чтобы список не прятался
+                    if (suggestInstance.state) {
+                        suggestInstance.state.set('zIndex', 99999);
+                    }
 
                     suggestInstance.events.add("select", (e: any) => {
                         const selectedAddress = e.get("item").value;
@@ -74,11 +77,22 @@ export const CheckoutPage = () => {
             });
         };
 
-        const timer = setTimeout(initSuggest, 500);
+        if ((window as any).ymaps) {
+            initSuggest();
+        } else {
+            checkInterval = setInterval(() => {
+                if ((window as any).ymaps) {
+                    clearInterval(checkInterval);
+                    initSuggest();
+                }
+            }, 300);
+        }
 
         return () => {
-            clearTimeout(timer);
-            suggestInstance = null;
+            if (checkInterval) clearInterval(checkInterval);
+            if (suggestInstance && typeof suggestInstance.destroy === 'function') {
+                suggestInstance.destroy();
+            }
         };
     }, [deliveryType]); // Переинициализируем при смене типа доставки
 
@@ -88,36 +102,43 @@ export const CheckoutPage = () => {
 
         setIsCalculating(true);
         try {
+            // Расчет маршрута "под капотом" для получения дистанции
             const route = await ymaps.route([STORE_COORDS, targetAddress]);
             const distanceInKm = Math.round(route.getLength() / 1000 * 10) / 10;
             setCalculatedDistance(distanceInKm);
 
-            // Работа с картой
-            if (mapRef.current) {
+            // Геокодирование для получения координат адреса клиента
+            const geocodeResult = await ymaps.geocode(targetAddress);
+            const firstGeoObject = geocodeResult.geoObjects.get(0);
+
+            // Работа с картой: только центрирование на адресе и установка маркера
+            if (firstGeoObject && mapRef.current) {
+                const targetCoords = firstGeoObject.geometry.getCoordinates();
+
                 if (!mapInstance.current) {
                     mapInstance.current = new ymaps.Map(mapRef.current, {
-                        center: STORE_COORDS,
-                        zoom: 12,
+                        center: targetCoords,
+                        zoom: 16,
                         controls: ['zoomControl', 'fullscreenControl']
+                    });
+                } else {
+                    // Плавно переносимся на выбранный адрес
+                    mapInstance.current.setCenter(targetCoords, 16, {
+                        checkZoomRange: true,
+                        duration: 500
                     });
                 }
 
                 mapInstance.current.geoObjects.removeAll();
 
-                // Настраиваем внешний вид маршрута
-                route.getPaths().options.set({
-                    strokeColor: 'ff4d94',
-                    strokeWidth: 5,
-                    opacity: 0.8
+                // Добавляем маркер на адрес доставки
+                const placemark = new ymaps.Placemark(targetCoords, {
+                    balloonContent: targetAddress
+                }, {
+                    preset: 'islands#pinkDotIcon'
                 });
 
-                mapInstance.current.geoObjects.add(route);
-
-                // Масштабируем
-                mapInstance.current.setBounds(route.getBounds(), {
-                    checkZoomRange: true,
-                    zoomMargin: 50
-                });
+                mapInstance.current.geoObjects.add(placemark);
             }
 
             let cost = 500;
