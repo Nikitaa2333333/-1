@@ -19,7 +19,7 @@ const DELIVERY_ZONES = [
 type Step = "form" | "success";
 
 export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-    const { totalPrice, clearCart } = useCart();
+    const { items, totalPrice, clearCart } = useCart();
 
     const [step, setStep] = useState<Step>("form");
     const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
@@ -51,8 +51,46 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
     const handleSubmit = async () => {
         if (!phone || !name || (deliveryType === "delivery" && !address)) return;
         setIsSubmitting(true);
-        // Имитация отправки
-        await new Promise((r) => setTimeout(r, 1200));
+
+        // 1. Формируем текст сообщения для Telegram
+        let orderText = `🚨 <b>НОВЫЙ ЗАКАЗ С САЙТА!</b>\n\n`;
+        orderText += `👤 <b>Клиент:</b> ${name}\n`;
+        orderText += `📞 <b>Телефон:</b> ${phone}\n`;
+        orderText += `🚚 <b>Тип:</b> ${deliveryType === "pickup" ? "Самовывоз" : "Доставка"}\n`;
+        if (deliveryType === "delivery") {
+            orderText += `📍 <b>Адрес:</b> ${address}\n`;
+            orderText += `🗺 <b>Зона:</b> ${DELIVERY_ZONES[zone].label} (${DELIVERY_ZONES[zone].price}₽)\n`;
+        }
+        if (comment) orderText += `💬 <b>Комментарий:</b> ${comment}\n`;
+        if (promoApplied) orderText += `🏷 <b>Промокод:</b> ${promo.toUpperCase()} (-${promoApplied}%)\n`;
+
+        orderText += `\n🛍 <b>Корзина:</b>\n`;
+        items.forEach((item: any) => {
+            orderText += `- ${item.name} (x${item.quantity}) = ${item.price * item.quantity}₽\n`;
+        });
+
+        orderText += `\n💰 <b>ИТОГО:</b> ${finalTotal}₽`;
+
+        // 2. Отправляем в Telegram
+        try {
+            // Замените на ваш актуальный токен и Chat ID из .env (сейчас захардкодим для работы с фронта)
+            // В идеале это нужно делать через серверлес функцию (как save-content), но для простоты шлем отсюда
+            const BOT_TOKEN = "7544062025:AAGC-90AAN_84K5T81E6O9068K9Y3u28NCM"; // Токен из твоего старого бота
+            const CHAT_ID = "1430030080";      // Твой Chat ID администратора 
+
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: orderText,
+                    parse_mode: "HTML"
+                })
+            });
+        } catch (error) {
+            console.error("Ошибка при отправке в ТГ:", error);
+        }
+
         setIsSubmitting(false);
         setStep("success");
         clearCart();
