@@ -133,10 +133,61 @@ const ProductRow = ({ product, categories, onChange, onDelete }: any) => {
 };
 
 export const Dashboard = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [passwordInput, setPasswordInput] = useState('');
+    const [loginError, setLoginError] = useState('');
+
     const [activeTab, setActiveTab] = useState<Section>('menu');
     const [formData, setFormData] = useState(data);
     const [isSaving, setIsSaving] = useState(false);
     const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
+
+    const handleLogin = () => {
+        if (passwordInput === 'klub2025') {
+            setIsAuthenticated(true);
+        } else {
+            setLoginError('Неверный пароль, братик! Попробуй еще раз 🍓');
+            setPasswordInput('');
+        }
+    };
+
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-brand-dark flex items-center justify-center p-6 font-sans">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl max-w-md w-full text-center space-y-8"
+                >
+                    <div className="w-20 h-20 bg-brand-dark rounded-3xl flex items-center justify-center mx-auto rotate-3 shadow-xl shadow-brand-dark/20">
+                        <Sparkles className="text-white w-10 h-10" />
+                    </div>
+                    <div>
+                        <h1 className="font-dela text-3xl text-brand-dark mb-2">Вход в Админку</h1>
+                        <p className="text-brand-dark/50 text-sm font-medium uppercase tracking-widest">Введите секретный пароль</p>
+                    </div>
+                    <div className="space-y-4">
+                        <input
+                            type="password"
+                            value={passwordInput}
+                            onChange={(e) => setPasswordInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                            placeholder="Пароль..."
+                            className="w-full bg-[#F4F4F6] border-2 border-brand-pink/10 rounded-2xl px-6 py-4 font-bold text-center text-lg outline-none focus:border-brand-hot transition-all"
+                            autoFocus
+                        />
+                        {loginError && <p className="text-red-500 font-bold text-sm italic">{loginError}</p>}
+                        <button
+                            onClick={handleLogin}
+                            className="w-full py-5 bg-brand-hot text-white rounded-2xl font-black text-lg shadow-xl shadow-brand-hot/30 hover:bg-brand-dark transition-all active:scale-95"
+                        >
+                            ОТКРЫТЬ ДВЕРЬ 🍓
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
 
     const handleSave = async () => {
         setIsSaving(true);
