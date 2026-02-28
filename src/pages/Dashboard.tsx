@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, ShoppingBag, Type, TicketPercent,
     Image as ImageIcon, Save, Plus, Trash2,
-    ChevronRight, Sparkles, Upload
+    ChevronRight, Sparkles, Upload,
+    Undo2, Redo2, RotateCcw
 } from 'lucide-react';
 import data from '../data/products.json';
 
@@ -141,6 +142,8 @@ export const Dashboard = () => {
 
     const [activeTab, setActiveTab] = useState<Section>('menu');
     const [formData, setFormData] = useState(data);
+    const [history, setHistory] = useState<any[]>([JSON.parse(JSON.stringify(data))]);
+    const [historyIndex, setHistoryIndex] = useState(0);
     const [isSaving, setIsSaving] = useState(false);
     const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
 
@@ -150,6 +153,41 @@ export const Dashboard = () => {
         } else {
             setLoginError('Неверный пароль, братик! Попробуй еще раз 🍓');
             setPasswordInput('');
+        }
+    };
+
+    // Функция для записи шага в историю
+    const pushState = (newData: any) => {
+        const nextData = JSON.parse(JSON.stringify(newData));
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(nextData);
+        if (newHistory.length > 30) newHistory.shift();
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+        setFormData(nextData);
+    };
+
+    const handleUndo = () => {
+        if (historyIndex > 0) {
+            const prevState = history[historyIndex - 1];
+            setHistoryIndex(historyIndex - 1);
+            setFormData(JSON.parse(JSON.stringify(prevState)));
+        }
+    };
+
+    const handleRedo = () => {
+        if (historyIndex < history.length - 1) {
+            const nextState = history[historyIndex + 1];
+            setHistoryIndex(historyIndex + 1);
+            setFormData(JSON.parse(JSON.stringify(nextState)));
+        }
+    };
+
+    const handleReset = () => {
+        if (confirm("Сбросить все несохраненные изменения?")) {
+            setFormData(JSON.parse(JSON.stringify(data)));
+            setHistory([JSON.parse(JSON.stringify(data))]);
+            setHistoryIndex(0);
         }
     };
 
@@ -218,26 +256,26 @@ export const Dashboard = () => {
     };
 
     const updateField = (path: string, value: any) => {
-        const newConfig = { ...formData };
+        const newConfig = JSON.parse(JSON.stringify(formData));
         const keys = path.split('.');
         let current: any = newConfig;
         for (let i = 0; i < keys.length - 1; i++) {
             current = current[keys[i]];
         }
         current[keys[keys.length - 1]] = value;
-        setFormData(newConfig);
+        pushState(newConfig);
     };
 
     const updateProduct = (index: number, newProduct: any) => {
         const newProducts = [...formData.products];
         newProducts[index] = newProduct;
-        setFormData({ ...formData, products: newProducts });
+        pushState({ ...formData, products: newProducts });
     };
 
     const deleteProduct = (index: number) => {
         if (confirm("Точно удалить товар?")) {
             const newProducts = formData.products.filter((_, i) => i !== index);
-            setFormData({ ...formData, products: newProducts });
+            pushState({ ...formData, products: newProducts });
         }
     };
 
@@ -257,7 +295,7 @@ export const Dashboard = () => {
             image: "/assets/products/strawberry-1.jpg",
             desc: ""
         };
-        setFormData({ ...formData, products: [newProduct, ...formData.products] });
+        pushState({ ...formData, products: [newProduct, ...formData.products] });
     };
 
     const TabButton = ({ id, icon: Icon, label }: { id: Section, icon: any, label: string }) => (
@@ -305,15 +343,45 @@ export const Dashboard = () => {
                         <h2 className="font-dela text-3xl md:text-4xl text-brand-dark leading-none mb-2">Настройка сайта</h2>
                         <p className="text-brand-dark/50 font-medium text-sm md:text-base">Изменения применятся на сайте после публикации</p>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className={`flex items-center gap-3 px-8 py-4 rounded-full font-black text-sm md:text-lg transition-all shadow-xl w-full md:w-auto justify-center ${isSaving ? 'bg-brand-dark/20 text-brand-dark/50 cursor-not-allowed' : 'bg-brand-hot text-white hover:bg-brand-dark hover:scale-105 active:scale-95 shadow-brand-hot/30'
-                            }`}
-                    >
-                        <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
-                        {isSaving ? 'СОХРАНЯЕМ...' : 'ОПУБЛИКОВАТЬ'}
-                    </button>
+
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="flex bg-[#F4F4F6] p-1.5 rounded-full shadow-inner border border-brand-pink/5">
+                            <button
+                                onClick={handleUndo}
+                                disabled={historyIndex === 0}
+                                title="Шаг назад"
+                                className={`p-3 rounded-full transition-all ${historyIndex === 0 ? 'text-black/10 cursor-not-allowed' : 'text-brand-dark hover:bg-white hover:shadow-md active:scale-95'}`}
+                            >
+                                <Undo2 className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={handleRedo}
+                                disabled={historyIndex === history.length - 1}
+                                title="Шаг вперед"
+                                className={`p-3 rounded-full transition-all ${historyIndex === history.length - 1 ? 'text-black/10 cursor-not-allowed' : 'text-brand-dark hover:bg-white hover:shadow-md active:scale-95'}`}
+                            >
+                                <Redo2 className="w-5 h-5" />
+                            </button>
+                            <div className="w-px h-6 bg-brand-pink/10 my-auto mx-1" />
+                            <button
+                                onClick={handleReset}
+                                title="Сбросить всё к оригиналу"
+                                className="p-3 text-brand-dark rounded-full hover:bg-white hover:shadow-md hover:text-brand-hot transition-all active:scale-95"
+                            >
+                                <RotateCcw className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className={`flex items-center gap-3 px-8 py-4 rounded-full font-black text-sm md:text-lg transition-all shadow-xl flex-grow md:flex-grow-0 justify-center ${isSaving ? 'bg-brand-dark/20 text-brand-dark/50 cursor-not-allowed' : 'bg-brand-hot text-white hover:bg-brand-dark hover:scale-105 active:scale-95 shadow-brand-hot/30'
+                                }`}
+                        >
+                            <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
+                            {isSaving ? 'СОХРАНЯЕМ...' : 'ОПУБЛИКОВАТЬ'}
+                        </button>
+                    </div>
                 </header>
 
                 <AnimatePresence mode="wait">
