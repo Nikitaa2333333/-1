@@ -4,7 +4,7 @@ import {
     LayoutDashboard, ShoppingBag, Type, TicketPercent,
     Image as ImageIcon, Save, Plus, Trash2,
     ChevronRight, Sparkles, Upload,
-    Undo2, Redo2, RotateCcw
+    Undo2, Redo2
 } from 'lucide-react';
 import data from '../data/products.json';
 
@@ -183,13 +183,7 @@ export const Dashboard = () => {
         }
     };
 
-    const handleReset = () => {
-        if (confirm("Сбросить все несохраненные изменения?")) {
-            setFormData(JSON.parse(JSON.stringify(data)));
-            setHistory([JSON.parse(JSON.stringify(data))]);
-            setHistoryIndex(0);
-        }
-    };
+
 
     if (!isAuthenticated) {
         return (
@@ -361,14 +355,6 @@ export const Dashboard = () => {
                                 className={`p-3 rounded-full transition-all ${historyIndex === history.length - 1 ? 'text-black/10 cursor-not-allowed' : 'text-brand-dark hover:bg-white hover:shadow-md active:scale-95'}`}
                             >
                                 <Redo2 className="w-5 h-5" />
-                            </button>
-                            <div className="w-px h-6 bg-brand-pink/10 my-auto mx-1" />
-                            <button
-                                onClick={handleReset}
-                                title="Сбросить всё к оригиналу"
-                                className="p-3 text-brand-dark rounded-full hover:bg-white hover:shadow-md hover:text-brand-hot transition-all active:scale-95"
-                            >
-                                <RotateCcw className="w-5 h-5" />
                             </button>
                         </div>
 
