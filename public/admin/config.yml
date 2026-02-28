@@ -1,0 +1,78 @@
+backend:
+  name: git-gateway
+local_backend: true
+
+media_folder: "public/assets/products"
+public_folder: "/assets/products"
+
+collections:
+  - name: "website_content"
+    label: "Управление сайтом"
+    files:
+      - file: "src/data/products.json"
+        label: "Тексты и Настройки"
+        name: "site_data"
+        fields:
+          - label: "БЕГУЩАЯ СТРОКА (Текст через /)"
+            name: "marqueeText"
+            widget: "string"
+
+          - label: "БЛОК МЕНЮ (МЕНЮ)"
+            name: "hero"
+            widget: "object"
+            fields:
+              - { label: "Верхняя строка", name: "titleLine1", widget: "string" }
+              - { label: "Нижняя строка (цветная)", name: "titleLine2", widget: "string" }
+          
+          - label: "БЛОК 'О НАС' (МАНИФЕСТ)"
+            name: "manifesto"
+            widget: "object"
+            fields:
+              - { label: "Заголовок", name: "title", widget: "string" }
+              - { label: "Текст описания", name: "text", widget: "text" }
+
+          - label: "НИЖНИЙ БАННЕР (CTA)"
+            name: "orderCTA"
+            widget: "object"
+            fields:
+              - { label: "Заголовок баннера", name: "title", widget: "string" }
+              - { label: "Текст на кнопке", name: "buttonText", widget: "string" }
+
+          - label: "ПРОМОКОДЫ"
+            name: "promoCodes"
+            widget: "list"
+            fields:
+              - { label: "КОД", name: "code", widget: "string" }
+              - { label: "СКИДКА (%)", name: "discount", widget: "number" }
+              - { label: "Описание для клиента", name: "desc", widget: "string" }
+
+          - label: "КАТЕГОРИИ МЕНЮ"
+            name: "categories"
+            widget: "list"
+            fields:
+              - { label: "ID (на латинице)", name: "id", widget: "string" }
+              - { label: "Название для клиента", name: "name", widget: "string" }
+
+          - label: "СПИСОК ТОВАРОВ"
+            name: "products"
+            widget: "list"
+            fields:
+              - { label: "ID (уникальный)", name: "id", widget: "number" }
+              - label: "КАТЕГОРИЯ-ХЕШТЕГ"
+                name: "category"
+                widget: "select"
+                options: [
+                  { label: "Клубника", value: "strawberry" },
+                  { label: "Хот-доги", value: "hotdogs" },
+                  { label: "Пончики", value: "donuts" },
+                  { label: "Напитки", value: "fresh" },
+                  { label: "Малина", value: "raspberry" },
+                  { label: "Сублиматы", value: "sweets" },
+                  { label: "Восточные", value: "oriental" }
+                ]
+              - { label: "НАЗВАНИЕ ТОВАРА", name: "name", widget: "string" }
+              - { label: "Вес/Объем", name: "weight", widget: "string" }
+              - { label: "Цена", name: "price", widget: "string" }
+              - { label: "Старая цена", name: "oldPrice", widget: "string", required: false }
+              - { label: "ФОТОГРАФИЯ", name: "image", widget: "image" }
+              - { label: "ОПИСАНИЕ", name: "desc", widget: "text", required: false }

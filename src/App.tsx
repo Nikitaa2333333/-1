@@ -32,6 +32,8 @@ function HomePage() {
   );
 }
 
+const Dashboard = lazy(() => import("@/pages/Dashboard").then(m => ({ default: m.Dashboard })));
+
 export function App() {
   return (
     <Routes>
@@ -42,6 +44,11 @@ export function App() {
         </Suspense>
       } />
       <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/dashboard" element={
+        <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
+          <Dashboard />
+        </Suspense>
+      } />
     </Routes>
   );
 }

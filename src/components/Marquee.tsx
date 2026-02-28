@@ -1,20 +1,10 @@
 import { motion } from "framer-motion";
-
-const phrases = [
-  "Belgian Chocolate",
-  "Свежая клубника",
-  "Малина в шоколаде",
-  "Клубника Limeberry",
-  "Сублимированные фрукты",
-  "Идеально на 8 марта",
-  "На день рождения",
-  "Без повода",
-  "Для признания в любви",
-  "Честная цена",
-  "Настоящее качество"
-];
+import data from "../data/products.json";
 
 export const Marquee = () => {
+  // Разбиваем строку по / для создания карточек
+  const phrases = data.marqueeText.split("/").filter(t => t.trim() !== "");
+
   return (
     <div className="bg-brand-hot text-white py-4 md:py-5 overflow-hidden border-y-[3px] border-brand-dark rotate-[-1deg] z-20 relative w-screen my-12 shadow-2xl">
       <motion.div

@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
+import data from '../data/products.json';
 
 export const PromoBanner = () => {
+    const { promoBanner } = data;
+
     return (
         <section className="pt-12 pb-24 bg-brand-cream overflow-hidden">
             <div className="container mx-auto px-4">
@@ -13,11 +16,11 @@ export const PromoBanner = () => {
                     {/* Content */}
                     <div className="flex-1 z-10 text-center md:text-left space-y-4">
                         <h2 className="font-dela text-3xl md:text-5xl leading-tight">
-                            Предзаказ за 24 часа <br className="hidden md:block" />
-                            <span className="text-brand-cream">— скидка 10%</span>
+                            {promoBanner.titleLine1} <br className="hidden md:block" />
+                            <span className="text-brand-cream">{promoBanner.titleLine2}</span>
                         </h2>
                         <p className="font-sans text-lg md:text-xl opacity-90 max-w-md mx-auto md:mx-0 font-medium">
-                            Планируйте праздник заранее и получайте приятные бонусы.
+                            {promoBanner.subtitle}
                         </p>
                     </div>
 
@@ -27,7 +30,7 @@ export const PromoBanner = () => {
                             href="#products"
                             className="inline-block bg-white text-brand-hot py-5 px-12 rounded-full font-sans font-black text-lg md:text-xl hover:bg-brand-cream transition-all active:scale-95 shadow-[0_10px_30px_rgba(0,0,0,0.1)] tracking-wider"
                         >
-                            Выбрать вкус
+                            {promoBanner.buttonText}
                         </a>
                     </div>
 

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import data from "../data/products.json";
 
 const StrawberryIcon = () => (
   <svg className="inline-block w-[0.9em] h-[0.9em] align-baseline mb-[-0.1em] mx-2" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,6 +25,8 @@ const TruckIcon = () => (
 );
 
 export const Manifesto = () => {
+  const { manifesto } = data;
+
   return (
     <section className="bg-brand-hot text-white py-16 md:py-24 px-4 overflow-hidden relative" id="about">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -59,22 +62,16 @@ export const Manifesto = () => {
           </p>
 
           <h2 className="font-dela text-[clamp(24px,5vw,56px)] leading-[1.2] max-w-5xl mx-auto mb-4">
-            Готовим самую вкусную клубнику<StrawberryIcon /> в шоколаде в центре Москвы.<br />
-            <span className="text-brand-dark">Доступен самовывоз или быстрая доставка<TruckIcon /> прямо к двери к 8 Марта.</span>
+            {manifesto.title}<StrawberryIcon /><br />
+            <span className="text-brand-dark">{manifesto.deliveryText}<TruckIcon /></span>
           </h2>
 
           <div className="max-w-4xl mx-auto text-left space-y-6 font-sans text-xl md:text-2xl leading-relaxed opacity-90 pt-4">
             <p>
-              <strong className="text-brand-dark">«Апельсинка»</strong> — проект, который родился в 2025 году и впервые радовал гостей на фестивале «Лето в Москве».
+              <strong className="text-brand-dark">{manifesto.brandName}</strong> — {manifesto.history}
             </p>
-            <p>
-              Проект создан людьми, для которых здоровье, витамины, молодость, солнце и радость от маленьких удовольствий — это стиль жизни.
-            </p>
-            <p>
-              Мы верим, что витамины, фрукты и ягоды должны быть доступны каждому, поэтому создаём вкусные и полезные продукты: свежую клубнику в бельгийском шоколаде, смузи, фреши и другие фруктовые лакомства.
-            </p>
-            <p className="text-brand-dark/80">
-              Наша миссия — дарить ощущение летнего удовольствия каждый день, независимо от сезона.
+            <p className="text-brand-dark/80 font-bold mt-8 md:text-3xl">
+              {manifesto.mission}
             </p>
           </div>
         </motion.div>
