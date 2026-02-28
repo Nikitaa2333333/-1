@@ -193,6 +193,17 @@ export const CheckoutPage = () => {
         }
     };
 
+    // Проверяем URL на наличие флага успеха от ЮKassa
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('success') === 'true') {
+            setStep("success");
+            clearCart();
+            // Чистим URL, чтобы не мешал
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, [clearCart]);
+
     const handleSubmit = async () => {
         if (!isFormValid) return;
         setIsSubmitting(true);
@@ -217,13 +228,22 @@ export const CheckoutPage = () => {
                 body: JSON.stringify(orderData)
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                throw new Error(err.error || 'Ошибка при отправке заказа');
+                throw new Error(result.error || 'Ошибка при отправке заказа');
             }
 
-            // Сохраняем данные пользователя для следующего заказа
+            // СОХРАНЯЕМ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
             localStorage.setItem("apelsinka_user_info", JSON.stringify({ name, phone, address, deliveryType }));
+
+            // ЕСЛИ ЮKASSA ВЕРНУЛА ССЫЛКУ — РЕДИРЕКТИМ НА ОПЛАТУ
+            if (result.paymentUrl) {
+                window.location.href = result.paymentUrl;
+                return;
+            }
+
+            // ЕСЛИ ОПЛАТЫ НЕТ (DEV РЕЖИМ) — ПОКАЗЫВАЕМ УСПЕХ СРАЗУ
             setIsSubmitting(false);
             setStep("success");
             clearCart();
