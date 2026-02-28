@@ -10,11 +10,7 @@ const PROMO_CODES: Record<string, number> = {
     "SALE10": 10,
 };
 
-const DELIVERY_ZONES = [
-    { label: "до 3 км", price: 150 },
-    { label: "3–7 км", price: 250 },
-    { label: "7–15 км", price: 400 },
-];
+
 
 // text-base обязателен на iOS — иначе Safari зумит страницу при фокусе на input
 const inputClass = "w-full pl-10 pr-4 py-4 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-base focus:outline-none focus:border-brand-hot focus:bg-white transition-colors";
@@ -28,7 +24,6 @@ export const CheckoutPage = () => {
     const [phone, setPhone] = useState("");
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
-    const [zone, setZone] = useState(0);
     const [promo, setPromo] = useState("");
     const [promoApplied, setPromoApplied] = useState<number | null>(null);
     const [promoError, setPromoError] = useState("");
@@ -49,7 +44,7 @@ export const CheckoutPage = () => {
         }
     }, []);
 
-    const deliveryCost = deliveryType === "pickup" ? 0 : DELIVERY_ZONES[zone].price;
+    const deliveryCost = deliveryType === "pickup" ? 0 : (totalPrice >= 10000 ? 0 : 500); // 500 рублей фиксированная стоимость или 0 если >= 10k
     const discount = promoApplied ? Math.round(totalPrice * promoApplied / 100) : 0;
     const finalTotal = totalPrice - discount + deliveryCost;
     const isFormValid = name.trim() && phone.trim().length >= 6 && (deliveryType === "pickup" || address.trim());
@@ -68,12 +63,42 @@ export const CheckoutPage = () => {
     const handleSubmit = async () => {
         if (!isFormValid) return;
         setIsSubmitting(true);
-        await new Promise(r => setTimeout(r, 1000));
-        // Сохраняем данные пользователя для следующего заказа
-        localStorage.setItem("apelsinka_user_info", JSON.stringify({ name, phone, address, deliveryType }));
-        setIsSubmitting(false);
-        setStep("success");
-        clearCart();
+
+        const orderData = {
+            items: items.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
+            total: finalTotal,
+            deliveryCost,
+            discount,
+            deliveryType,
+            name,
+            phone,
+            address,
+            comment,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            const response = await fetch('/api/send-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || 'Ошибка при отправке заказа');
+            }
+
+            // Сохраняем данные пользователя для следующего заказа
+            localStorage.setItem("apelsinka_user_info", JSON.stringify({ name, phone, address, deliveryType }));
+            setIsSubmitting(false);
+            setStep("success");
+            clearCart();
+        } catch (error: any) {
+            console.error("Order error:", error);
+            alert("Произошла ошибка при отправке заказа: " + error.message);
+            setIsSubmitting(false);
+        }
     };
 
     if (items.length === 0 && step !== "success") {
@@ -145,16 +170,9 @@ export const CheckoutPage = () => {
                                     <input type="text" placeholder="Улица, дом, квартира" value={address}
                                         onChange={e => setAddress(e.target.value)} className={inputClass} />
                                 </div>
-                                <p className="text-xs text-gray-400">Зона доставки</p>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {DELIVERY_ZONES.map((z, i) => (
-                                        <button key={i} onClick={() => setZone(i)}
-                                            className={`py-3 rounded-xl text-xs font-bold transition-all min-h-[56px] ${zone === i ? "bg-brand-hot text-white" : "bg-gray-100 text-gray-500"}`}>
-                                            {z.label}<br />
-                                            <span className={zone === i ? "text-white/80" : "text-gray-400"}>{z.price} ₽</span>
-                                        </button>
-                                    ))}
-                                </div>
+                                <p className="text-xs text-gray-500 font-medium">
+                                    {totalPrice >= 10000 ? "Бесплатная доставка (от 10 000 ₽)" : "Стоимость доставки будет рассчитана менеджером после согласования заказа."}
+                                </p>
                             </div>
                         )}
 
@@ -212,7 +230,10 @@ export const CheckoutPage = () => {
                             <div className="border-t border-gray-100 mt-3 pt-3 space-y-1">
                                 {deliveryType === "delivery" && (
                                     <div className="flex justify-between text-sm text-gray-400">
-                                        <span>Доставка</span><span>{deliveryCost} ₽</span>
+                                        <span>Доставка</span>
+                                        <span className="text-right max-w-[50%]">
+                                            {totalPrice >= 10000 ? "Бесплатно" : "По согласованию"}
+                                        </span>
                                     </div>
                                 )}
                                 {promoApplied && (
