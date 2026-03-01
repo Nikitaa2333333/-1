@@ -81,7 +81,7 @@ export const Footer = () => {
             <div className="relative group rounded-2xl overflow-hidden shadow-lg border border-brand-pink/10">
               <div className="aspect-[4/3] w-full">
                 <iframe
-                  src="https://yandex.ru/map-widget/v1/org/1572110292"
+                  src="https://yandex.ru/map-widget/v1/org/157424703728"
                   width="100%"
                   height="100%"
                   frameBorder="0"
@@ -92,7 +92,7 @@ export const Footer = () => {
               </div>
               {/* Overlay с адресом */}
               <a
-                href="https://yandex.ru/maps/org/apelsinka/1572110292/"
+                href="https://yandex.ru/maps/org/apelsinka/157424703728/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/50 to-transparent p-4 pt-10"
