@@ -12,6 +12,7 @@ import { CheckoutPage } from "@/pages/CheckoutPage";
 
 const ProductGrid = lazy(() => import("@/components/ProductGrid").then(m => ({ default: m.ProductGrid })));
 const CartPage = lazy(() => import("@/pages/CartPage").then(m => ({ default: m.CartPage })));
+const ProductPage = lazy(() => import("@/pages/ProductPage").then(m => ({ default: m.ProductPage })));
 
 function HomePage() {
   return (
@@ -41,6 +42,11 @@ export function App() {
       <Route path="/cart" element={
         <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
           <CartPage />
+        </Suspense>
+      } />
+      <Route path="/product/:id" element={
+        <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
+          <ProductPage />
         </Suspense>
       } />
       <Route path="/checkout" element={<CheckoutPage />} />

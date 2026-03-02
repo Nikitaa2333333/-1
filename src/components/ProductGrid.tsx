@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import data from "../data/products.json";
 
@@ -6,6 +7,7 @@ const { categories, products, hero } = data;
 
 export const ProductGrid = () => {
   const [activeCategory, setActiveCategory] = useState('all');
+  const navigate = useNavigate();
   const { addToCart } = useCart();
 
   const filteredProducts = useMemo(() => {
@@ -49,7 +51,10 @@ export const ProductGrid = () => {
               key={product.id}
               className="group bg-white rounded-2xl md:rounded-[2rem] overflow-hidden shadow-md md:shadow-xl flex flex-col border border-brand-pink/5"
             >
-              <div className="relative h-40 md:h-64 overflow-hidden">
+              <div
+                className="relative h-40 md:h-64 overflow-hidden cursor-pointer"
+                onClick={() => navigate(`/product/${product.id}`)}
+              >
                 <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors z-10"></div>
                 <img
                   src={product.image}
@@ -67,7 +72,7 @@ export const ProductGrid = () => {
 
               <div className="p-3 md:p-6 flex flex-col flex-grow space-y-2 md:space-y-4">
                 <div className="space-y-1 md:space-y-4">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1 cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
                     <h3 className="font-dela text-sm md:text-lg text-brand-dark leading-tight group-hover:text-brand-hot transition-colors line-clamp-2 md:line-clamp-none">
                       {product.name}
                     </h3>

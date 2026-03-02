@@ -74,5 +74,10 @@ collections:
               - { label: "Вес/Объем", name: "weight", widget: "string" }
               - { label: "Цена", name: "price", widget: "string" }
               - { label: "Старая цена", name: "oldPrice", widget: "string", required: false }
-              - { label: "ФОТОГРАФИЯ", name: "image", widget: "image" }
-              - { label: "ОПИСАНИЕ", name: "desc", widget: "text", required: false }
+              - { label: "ФОТОГРАФИЯ (Главная)", name: "image", widget: "image" }
+              - label: "ГАЛЕРЕЯ (Дополнительные фото для страницы товара)"
+                name: "gallery"
+                widget: "list"
+                required: false
+                field: { label: "Фото", name: "image", widget: "image" }
+              - { label: "ОПИСАНИЕ (Текст на странице товара)", name: "desc", widget: "text", required: false }
