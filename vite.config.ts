@@ -36,10 +36,15 @@ function savePlugin() {
             try {
               const order = JSON.parse(body);
 
-              // Берем реальные ключи из .env (если они там есть) или хардкодим для теста
-              // Так как Vite загружает .env, мы можем использовать process.env
-              const shopId = process.env.YOOKASSA_SHOP_ID || '1288864';
-              const secretKey = process.env.YOOKASSA_SECRET_KEY || 'live_ON7yZ_wjYqT3zXeBgp37G9jZn5MRcGh-8cI17Ir33vM';
+              const shopId = process.env.YOOKASSA_SHOP_ID;
+              const secretKey = process.env.YOOKASSA_SECRET_KEY;
+
+              if (!shopId || !secretKey) {
+                console.error('❌ YooKassa Local: Ключи не найдены в .env!');
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: 'Ключи ЮKassa не настроены в .env' }));
+                return;
+              }
 
               const auth = Buffer.from(`${shopId}:${secretKey}`).toString('base64');
               const idempotenceKey = Date.now().toString();
