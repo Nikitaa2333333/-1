@@ -438,6 +438,13 @@ export const CheckoutPage = () => {
                         >
                             {isSubmitting ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Подтвердить заказ →"}
                         </button>
+                        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+                            <p className="text-[10px] text-gray-400 leading-relaxed font-sans">
+                                Индивидуальный предприниматель Горбачева Гахара Муриковна<br />
+                                ИНН: 773015005650 | ОГРНИП: 322774600682247<br />
+                                Юр. адрес: 121309, г. Москва, ул. Сеславинская, д. 28, кв. 46
+                            </p>
+                        </div>
                         <div className="h-8" />
                     </motion.div>
                 ) : (

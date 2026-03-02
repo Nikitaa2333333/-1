@@ -289,6 +289,14 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                                         <>Подтвердить заказ <ChevronRight className="w-5 h-5" /></>
                                     )}
                                 </button>
+
+                                <div className="pt-4 mt-2 border-t border-brand-pink/10 text-center">
+                                    <p className="text-[10px] text-brand-dark/40 leading-relaxed font-sans">
+                                        ИП Горбачева Гахара Муриковна<br />
+                                        ИНН: 773015005650 | ОГРНИП: 322774600682247<br />
+                                        121309, г. Москва, ул. Сеславинская, д. 28, кв. 46
+                                    </p>
+                                </div>
                             </div>
                         ) : (
                             /* Success */

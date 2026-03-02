@@ -123,7 +123,12 @@ export const Footer = () => {
                 className="w-[85%] h-[85%] object-contain"
               />
             </div>
-            <p>© 2025 Апельсинка. Все права защищены.</p>
+            <div className="flex flex-col items-center md:items-start gap-1 text-center md:text-left">
+              <p>© 2025 Апельсинка. Все права защищены.</p>
+              <div className="text-[10px] sm:text-xs text-brand-dark/40 leading-tight">
+                ИП Горбачева Гахара Муриковна | ИНН: 773015005650 | ОГРНИП: 322774600682247
+              </div>
+            </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
             <a href="#" className="hover:text-brand-dark transition-colors">Политика конфиденциальности</a>
