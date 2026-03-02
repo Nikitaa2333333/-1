@@ -36,11 +36,14 @@ function savePlugin() {
             try {
               const order = JSON.parse(body);
 
-              // Твои личные тестовые данные ЮKassa
-              const shopId = '1288702';
-              const secretKey = 'test_E3TyzQ80H1z7e2XOvU_VZbdHqGqpsyEX7ESUXUe8FjQ';
+              // Берем реальные ключи из .env (если они там есть) или хардкодим для теста
+              // Так как Vite загружает .env, мы можем использовать process.env
+              const shopId = process.env.YOOKASSA_SHOP_ID || '1288864';
+              const secretKey = process.env.YOOKASSA_SECRET_KEY || 'live_ON7yZ_wjYqT3zXeBgp37G9jZn5MRcGh-8cI17Ir33vM';
+
               const auth = Buffer.from(`${shopId}:${secretKey}`).toString('base64');
               const idempotenceKey = Date.now().toString();
+
 
               const { type = 'embedded' } = order;
               const protocol = req.headers['x-forwarded-proto'] || 'http';
@@ -50,7 +53,7 @@ function savePlugin() {
                 ? { type: 'redirect', return_url: `${protocol}://${host}/checkout?success=true` }
                 : { type: 'embedded' };
 
-              console.log(`[YooKassa] Creating payment (type: ${type})...`);
+              console.log(`[YooKassa Local] Creating payment (type: ${type})...`);
 
               const response = await fetch('https://api.yookassa.ru/v3/payments', {
                 method: 'POST',
@@ -60,15 +63,15 @@ function savePlugin() {
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                  amount: { value: order.total.toString(), currency: 'RUB' },
+                  amount: { value: String(order.total), currency: 'RUB' },
                   confirmation: confirmationParams,
                   capture: true,
-                  description: `Заказ (режим ${type}): ${order.name} | ${order.phone}`
+                  description: `Заказ (Vite): ${order.name} | ${order.phone}`
                 })
               });
 
               const payment = await response.json();
-              console.log('[YooKassa] Response:', JSON.stringify(payment, null, 2));
+              console.log('[YooKassa Local] Response ID:', payment.id);
 
               if (!response.ok) {
                 console.error('❌ YooKassa API Error:', payment);
