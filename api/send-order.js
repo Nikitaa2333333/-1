@@ -54,9 +54,7 @@ export default async function handler(req, res) {
                 capture: true,
                 description: `Заказ: ${order.name} (${order.phone})`,
                 metadata: {
-                    orderType: type,
-                    customerName: order.name,
-                    customerPhone: order.phone
+                    orderData: JSON.stringify(order)
                 }
             };
 
@@ -116,6 +114,10 @@ ${order.discount ? `🏷 Скидка: ${order.discount} ₽` : ''}
 Телефон: ${order.phone}
 Тип: ${order.deliveryType === 'delivery' ? '🚚 Доставка' : '🏪 Самовывоз'}
 ${order.address ? `Адрес: ${order.address}` : ''}
+${order.apartment ? `Кв./офис: ${order.apartment}` : ''}
+${order.intercom ? `Домофон: ${order.intercom}` : ''}
+${order.entrance ? `Подъезд: ${order.entrance}` : ''}
+${order.floor ? `Этаж: ${order.floor}` : ''}
 ${order.comment ? `💬 Коммент: ${order.comment}` : ''}
 `;
 

@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 export const ProductPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { addToCart } = useCart();
+    const { items, addToCart } = useCart();
+    const isInCart = items.some(item => item.id === Number(id));
 
     const product: any = data.products.find(p => p.id === Number(id));
 
@@ -109,10 +110,16 @@ export const ProductPage = () => {
                         </div>
 
                         <button
-                            onClick={() => addToCart(product)}
-                            className="w-full sm:w-auto px-12 py-5 bg-brand-hot text-white rounded-2xl font-bold text-xl shadow-xl shadow-brand-hot/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                            onClick={() => {
+                                if (!isInCart) addToCart(product);
+                            }}
+                            className={`w-full sm:w-auto px-12 py-5 rounded-2xl font-bold text-xl shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 ${isInCart
+                                ? 'bg-brand-dark text-white shadow-brand-dark/20'
+                                : 'bg-brand-hot text-white shadow-brand-hot/20 hover:scale-[1.02]'
+                                }`}
                         >
-                            <ShoppingCart className="w-6 h-6" /> Добавить в корзину
+                            <ShoppingCart className="w-6 h-6" />
+                            {isInCart ? 'В корзине 🍓' : 'Добавить в корзину'}
                         </button>
 
                         <div className="grid grid-cols-2 gap-4 pt-8">

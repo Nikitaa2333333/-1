@@ -40,6 +40,10 @@ ${order.discount ? `🏷 Скидка: ${order.discount} ₽` : ''}
 Телефон: ${order.phone}
 Тип: ${order.deliveryType === 'delivery' ? '🚚 Доставка' : '🏪 Самовывоз'}
 ${order.address ? `Адрес: ${order.address}` : ''}
+${order.apartment ? `Кв./офис: ${order.apartment}` : ''}
+${order.intercom ? `Домофон: ${order.intercom}` : ''}
+${order.entrance ? `Подъезд: ${order.entrance}` : ''}
+${order.floor ? `Этаж: ${order.floor}` : ''}
 ${order.comment ? `💬 Коммент: ${order.comment}` : ''}
 `;
 

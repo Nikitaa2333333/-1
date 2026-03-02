@@ -27,8 +27,6 @@ function HomePage() {
       </Suspense>
       <OrderCTA />
       <Footer />
-
-      <CartIcon />
     </div>
   );
 }
@@ -37,24 +35,27 @@ const Dashboard = lazy(() => import("@/pages/Dashboard").then(m => ({ default: m
 
 export function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/cart" element={
-        <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
-          <CartPage />
-        </Suspense>
-      } />
-      <Route path="/product/:id" element={
-        <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
-          <ProductPage />
-        </Suspense>
-      } />
-      <Route path="/checkout" element={<CheckoutPage />} />
-      <Route path="/dashboard" element={
-        <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
-          <Dashboard />
-        </Suspense>
-      } />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/cart" element={
+          <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
+            <CartPage />
+          </Suspense>
+        } />
+        <Route path="/product/:id" element={
+          <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
+            <ProductPage />
+          </Suspense>
+        } />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/dashboard" element={
+          <Suspense fallback={<div className="min-h-screen bg-brand-pink/5" />}>
+            <Dashboard />
+          </Suspense>
+        } />
+      </Routes>
+      <CartIcon />
+    </>
   );
 }

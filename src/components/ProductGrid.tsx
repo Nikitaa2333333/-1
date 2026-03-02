@@ -8,7 +8,7 @@ const { categories, products, hero } = data;
 export const ProductGrid = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { items, addToCart } = useCart();
 
   const filteredProducts = useMemo(() => {
     if (activeCategory === 'all') return products;
@@ -49,12 +49,10 @@ export const ProductGrid = () => {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="group bg-white rounded-2xl md:rounded-[2rem] overflow-hidden shadow-md md:shadow-xl flex flex-col border border-brand-pink/5"
+              onClick={() => navigate(`/product/${product.id}`)}
+              className="group bg-white rounded-2xl md:rounded-[2rem] overflow-hidden shadow-md md:shadow-xl flex flex-col border border-brand-pink/5 cursor-pointer hover:border-brand-hot/30 transition-all"
             >
-              <div
-                className="relative h-40 md:h-64 overflow-hidden cursor-pointer"
-                onClick={() => navigate(`/product/${product.id}`)}
-              >
+              <div className="relative h-40 md:h-64 overflow-hidden">
                 <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors z-10"></div>
                 <img
                   src={product.image}
@@ -72,7 +70,7 @@ export const ProductGrid = () => {
 
               <div className="p-3 md:p-6 flex flex-col flex-grow space-y-2 md:space-y-4">
                 <div className="space-y-1 md:space-y-4">
-                  <div className="flex flex-col gap-1 cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
+                  <div className="flex flex-col gap-1">
                     <h3 className="font-dela text-sm md:text-lg text-brand-dark leading-tight group-hover:text-brand-hot transition-colors line-clamp-2 md:line-clamp-none">
                       {product.name}
                     </h3>
@@ -81,7 +79,7 @@ export const ProductGrid = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="bg-brand-cream text-brand-dark font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-lg text-xs md:text-sm whitespace-nowrap shadow-sm">
+                    <span className="bg-brand-cream text-brand-dark font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-lg text-xs md:text-sm whitespace-nowrap">
                       {product.price.replace(' ₽', '')} <span className="font-sans text-[0.9em]">₽</span>
                     </span>
                     {product.oldPrice && (
@@ -93,13 +91,26 @@ export const ProductGrid = () => {
                 </div>
 
                 <div className="mt-auto pt-2">
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="block w-full py-2.5 md:py-4 bg-white border md:border-2 border-brand-dark rounded-xl font-bold text-center text-[10px] md:text-base hover:bg-brand-dark hover:text-white active:scale-[0.98] transition-all shadow-sm group/btn relative overflow-hidden"
-                  >
-                    <span className="relative z-10">Купить</span>
-                    <div className="absolute inset-0 bg-brand-dark translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
-                  </button>
+                  {(() => {
+                    const isInCart = items.some(item => item.id === product.id);
+                    return (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isInCart) addToCart(product);
+                        }}
+                        className={`block w-full py-2.5 md:py-4 border md:border-2 rounded-xl font-bold text-center text-[10px] md:text-base transition-all shadow-sm group/btn relative overflow-hidden active:scale-[0.98] ${isInCart
+                          ? "bg-brand-hot border-brand-hot text-white"
+                          : "bg-white border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white"
+                          }`}
+                      >
+                        <span className="relative z-10">{isInCart ? "В КОРЗИНЕ 🍓" : "Купить"}</span>
+                        {!isInCart && (
+                          <div className="absolute inset-0 bg-brand-dark translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                        )}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

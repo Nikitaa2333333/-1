@@ -26,6 +26,10 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
     const [phone, setPhone] = useState("");
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
+    const [apartment, setApartment] = useState("");
+    const [intercom, setIntercom] = useState("");
+    const [entrance, setEntrance] = useState("");
+    const [floor, setFloor] = useState("");
     const [zone, setZone] = useState(0); // index in DELIVERY_ZONES
     const [promo, setPromo] = useState("");
     const [promoApplied, setPromoApplied] = useState<number | null>(null);
@@ -59,6 +63,10 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
         orderText += `🚚 <b>Тип:</b> ${deliveryType === "pickup" ? "Самовывоз" : "Доставка"}\n`;
         if (deliveryType === "delivery") {
             orderText += `📍 <b>Адрес:</b> ${address}\n`;
+            if (apartment) orderText += `🏠 <b>Кв/офис:</b> ${apartment}\n`;
+            if (intercom) orderText += `🔔 <b>Домофон:</b> ${intercom}\n`;
+            if (entrance) orderText += `🚪 <b>Подъезд:</b> ${entrance}\n`;
+            if (floor) orderText += `⬆️ <b>Этаж:</b> ${floor}\n`;
             orderText += `🗺 <b>Зона:</b> ${DELIVERY_ZONES[zone].label} (${DELIVERY_ZONES[zone].price}₽)\n`;
         }
         if (comment) orderText += `💬 <b>Комментарий:</b> ${comment}\n`;
@@ -98,7 +106,9 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
     const handleClose = () => {
         setStep("form");
-        setPhone(""); setName(""); setAddress(""); setPromo("");
+        setPhone(""); setName(""); setAddress("");
+        setApartment(""); setIntercom(""); setEntrance(""); setFloor("");
+        setPromo("");
         setPromoApplied(null); setPromoError(""); setComment("");
         onClose();
     };
@@ -188,6 +198,25 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                                                     onChange={(e) => setAddress(e.target.value)}
                                                     className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-all"
                                                 />
+                                            </div>
+
+                                            <div className="grid grid-cols-4 gap-2">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] text-brand-dark/40 font-bold ml-1">Кв./офис</label>
+                                                    <input type="text" value={apartment} onChange={e => setApartment(e.target.value)} className="w-full px-2 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-xs focus:outline-none focus:border-brand-hot focus:bg-white transition-all" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] text-brand-dark/40 font-bold ml-1">Домофон</label>
+                                                    <input type="text" value={intercom} onChange={e => setIntercom(e.target.value)} className="w-full px-2 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-xs focus:outline-none focus:border-brand-hot focus:bg-white transition-all" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] text-brand-dark/40 font-bold ml-1">Подъезд</label>
+                                                    <input type="text" value={entrance} onChange={e => setEntrance(e.target.value)} className="w-full px-2 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-xs focus:outline-none focus:border-brand-hot focus:bg-white transition-all" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] text-brand-dark/40 font-bold ml-1">Этаж</label>
+                                                    <input type="text" value={floor} onChange={e => setFloor(e.target.value)} className="w-full px-2 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-xs focus:outline-none focus:border-brand-hot focus:bg-white transition-all" />
+                                                </div>
                                             </div>
 
                                             {/* Delivery zone */}

@@ -22,6 +22,10 @@ export const CheckoutPage = () => {
     const [phone, setPhone] = useState("");
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
+    const [apartment, setApartment] = useState("");
+    const [intercom, setIntercom] = useState("");
+    const [entrance, setEntrance] = useState("");
+    const [floor, setFloor] = useState("");
     const [promo, setPromo] = useState("");
     const [promoApplied, setPromoApplied] = useState<number | null>(null);
     const [promoError, setPromoError] = useState("");
@@ -127,13 +131,17 @@ export const CheckoutPage = () => {
         const saved = localStorage.getItem("apelsinka_user_info");
         if (saved) {
             try {
-                const { name, phone, address, deliveryType } = JSON.parse(saved);
+                const { name, phone, address, apartment, intercom, entrance, floor, deliveryType } = JSON.parse(saved);
                 if (name) setName(name);
                 if (phone) setPhone(phone);
                 if (address) {
                     setAddress(address);
                     if (deliveryType === "delivery") calculateDelivery(address);
                 }
+                if (apartment) setApartment(apartment);
+                if (intercom) setIntercom(intercom);
+                if (entrance) setEntrance(entrance);
+                if (floor) setFloor(floor);
                 if (deliveryType) setDeliveryType(deliveryType);
             } catch { }
         }
@@ -263,6 +271,10 @@ export const CheckoutPage = () => {
             name: String(name).trim(),
             phone: String(phone).trim(),
             address: String(address).trim(),
+            apartment: String(apartment || '').trim(),
+            intercom: String(intercom || '').trim(),
+            entrance: String(entrance || '').trim(),
+            floor: String(floor || '').trim(),
             comment: String(comment || '').trim(),
             type: payType, // 'embedded' или 'redirect'
             timestamp: new Date().toISOString()
@@ -291,6 +303,10 @@ export const CheckoutPage = () => {
                     name: String(name),
                     phone: String(phone),
                     address: String(address),
+                    apartment: String(apartment),
+                    intercom: String(intercom),
+                    entrance: String(entrance),
+                    floor: String(floor),
                     deliveryType: String(deliveryType)
                 }));
             } catch (e) {
@@ -382,6 +398,32 @@ export const CheckoutPage = () => {
                                     }} onBlur={() => { if (address.trim() && !calculatedDistance) calculateDelivery(address); }} className={inputClass} />
                                     {isCalculating && <div className="absolute right-3 top-1/2 -translate-y-1/2"><Loader2 className="w-4 h-4 text-brand-hot animate-spin" /></div>}
                                 </div>
+
+                                {address && (
+                                    <div className="grid grid-cols-4 gap-2 mt-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-gray-400 font-bold ml-1">Кв./офис</label>
+                                            <input type="text" value={apartment} onChange={e => setApartment(e.target.value)} className="w-full px-3 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-colors" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-gray-400 font-bold ml-1">Домофон</label>
+                                            <input type="text" value={intercom} onChange={e => setIntercom(e.target.value)} className="w-full px-3 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-colors" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-gray-400 font-bold ml-1">Подъезд</label>
+                                            <input type="text" value={entrance} onChange={e => setEntrance(e.target.value)} className="w-full px-3 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-colors" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-gray-400 font-bold ml-1">Этаж</label>
+                                            <input type="text" value={floor} onChange={e => setFloor(e.target.value)} className="w-full px-3 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-colors" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="space-y-1 mt-3">
+                                    <label className="text-[10px] text-gray-400 font-bold ml-1">Комментарий курьеру</label>
+                                    <textarea placeholder="Пожелания к заказу (необязательно)" value={comment} onChange={e => setComment(e.target.value)} rows={2} className="w-full px-4 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-sm resize-none focus:outline-none focus:border-brand-hot focus:bg-white transition-colors" />
+                                </div>
                                 <div className={`w-full overflow-hidden border border-brand-pink/20 bg-gray-50 transition-all duration-700 rounded-2xl ${address ? 'h-56 opacity-100 mt-2 shadow-inner' : 'h-0 opacity-0 mt-0'}`}><div ref={mapRef} className="w-full h-full" /></div>
                                 <div className="bg-brand-pink/5 p-3 rounded-xl border border-brand-pink/10">
                                     {calculatedDistance ? (
@@ -402,11 +444,6 @@ export const CheckoutPage = () => {
                                 <div className="flex gap-3 items-start"><MapPin className="w-5 h-5 text-brand-hot shrink-0 mt-0.5" /><div><p className="font-bold text-brand-dark text-sm">Украинский бульвар, 8с1</p><p className="text-gray-400 text-xs mt-0.5">Ежедневно 9:00 – 20:00</p></div></div>
                             </div>
                         )}
-
-                        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                            <h2 className="font-dela text-base text-brand-dark mb-3">Комментарий</h2>
-                            <textarea placeholder="Пожелания к заказу (необязательно)" value={comment} onChange={e => setComment(e.target.value)} rows={3} className="w-full px-4 py-4 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-base resize-none focus:outline-none focus:border-brand-hot focus:bg-white transition-colors" />
-                        </div>
 
                         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                             <h2 className="font-dela text-base text-brand-dark mb-3">Промокод</h2>
