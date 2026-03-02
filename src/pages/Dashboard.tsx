@@ -352,6 +352,34 @@ export const Dashboard = () => {
         });
     }, [pushHistory]);
 
+    const addCategory = useCallback(() => {
+        const name = prompt("Введите название нового раздела (категории):");
+        if (!name || name.trim() === '') return;
+
+        const id = 'cat_' + Date.now();
+        setFormData(prev => {
+            const newCategories = [...(prev.categories || []), { id, name }];
+            const nextData = { ...prev, categories: newCategories };
+            pushHistory(nextData);
+            return nextData;
+        });
+        setActiveCategoryFilter(id);
+    }, [pushHistory]);
+
+    const removeCategory = useCallback((idToRemove: string) => {
+        if (confirm("Точно удалить этот раздел? (товары внутри останутся без категории)")) {
+            setFormData(prev => {
+                const newCategories = (prev.categories || []).filter((c: any) => c.id !== idToRemove);
+                const nextData = { ...prev, categories: newCategories };
+                pushHistory(nextData);
+                return nextData;
+            });
+            if (activeCategoryFilter === idToRemove) {
+                setActiveCategoryFilter('all');
+            }
+        }
+    }, [activeCategoryFilter, pushHistory]);
+
     const addProduct = useCallback(() => {
         const newProduct = {
             id: Date.now(),
@@ -461,15 +489,25 @@ export const Dashboard = () => {
                             <div className="space-y-6">
                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-brand-dark text-white p-6 rounded-[2rem] gap-4">
                                     <h3 className="font-dela text-2xl">Ваше меню</h3>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2 items-center flex-grow">
                                         {(formData.categories || EMPTY_ARRAY).map((cat: any) => (
-                                            <button key={cat.id} onClick={() => setActiveCategoryFilter(cat.id)} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeCategoryFilter === cat.id ? 'bg-brand-hot text-white shadow-lg' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
-                                                {cat.name}
-                                            </button>
+                                            <div key={cat.id} className="relative group/cat">
+                                                <button onClick={() => setActiveCategoryFilter(cat.id)} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeCategoryFilter === cat.id ? 'bg-brand-hot text-white shadow-lg' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                                                    {cat.name}
+                                                </button>
+                                                {cat.id !== 'all' && activeCategoryFilter === cat.id && (
+                                                    <button onClick={() => removeCategory(cat.id)} className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center hover:bg-red-600 opacity-0 group-hover/cat:opacity-100 transition-opacity shadow-sm z-10" title="Удалить раздел">
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         ))}
+                                        <button onClick={addCategory} className="px-4 py-2 rounded-full text-sm font-bold transition-all bg-white/5 text-white/50 hover:bg-brand-hot hover:text-white border border-dashed border-white/20 flex items-center gap-1 ml-2">
+                                            <Plus className="w-4 h-4" /> Раздел
+                                        </button>
                                     </div>
-                                    <button onClick={addProduct} className="bg-white text-brand-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-brand-hot hover:text-white transition-all shadow-lg w-full md:w-auto">
-                                        <Plus className="w-5 h-5" /> Новый
+                                    <button onClick={addProduct} className="bg-white text-brand-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-brand-hot hover:text-white transition-all shadow-lg w-full md:w-auto flex-shrink-0">
+                                        <Plus className="w-5 h-5" /> Товар
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4">
