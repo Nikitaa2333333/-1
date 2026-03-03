@@ -72,6 +72,33 @@ const DebouncedInput = ({ value, onChange, className, placeholder, type = "text"
     );
 };
 
+// Функция сжатия изображений
+const compressImage = (base64Str: string, maxWidth = 1200, quality = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+
+            // Сжимаем в WebP для максимальной оптимизации в вебе
+            const compressedBase64 = canvas.toDataURL('image/webp', quality);
+            resolve(compressedBase64);
+        };
+    });
+};
+
 // Компонент одного товара
 const ProductRow = memo(({ product, categories, onUpdate, onDelete }: any) => {
     const [hasDiscount, setHasDiscount] = useState(!!product.oldPrice);
@@ -80,9 +107,11 @@ const ProductRow = memo(({ product, categories, onUpdate, onDelete }: any) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
+            reader.onloadend = async () => {
                 const base64String = reader.result as string;
-                onUpdate(product.id, { ...product, image: base64String });
+                // Сжимаем перед сохранением!
+                const compressed = await compressImage(base64String, 1200, 0.85);
+                onUpdate(product.id, { ...product, image: compressed });
             };
             reader.readAsDataURL(file);
         }
@@ -92,9 +121,11 @@ const ProductRow = memo(({ product, categories, onUpdate, onDelete }: any) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
+            reader.onloadend = async () => {
                 const base64String = reader.result as string;
-                const newGallery = [...(product.gallery || []), { image: base64String }];
+                // Сжимаем перед сохранением!
+                const compressed = await compressImage(base64String, 1000, 0.8);
+                const newGallery = [...(product.gallery || []), { image: compressed }];
                 onUpdate(product.id, { ...product, gallery: newGallery });
             };
             reader.readAsDataURL(file);
