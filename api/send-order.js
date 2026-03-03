@@ -11,7 +11,9 @@
  * 4. Сумма позиций чека = сумме платежа (копейка в копейку)
  */
 
-import productsData from '../src/data/products.json';
+// ВАЖНО: Мы не используем статический импорт, так как админка меняет файл на GitHub, 
+// и нам нужны свежие данные без пересборки Vercel.
+let productsCache = null;
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -37,6 +39,36 @@ export default async function handler(req, res) {
     console.log('[API] New order:', { name: order.name, total: order.total, type: order.type });
 
     try {
+        // === ЗАГРУЗКА АКТУАЛЬНЫХ ДАННЫХ ТОВАРОВ (Sync с Админкой) ===
+        const { GITHUB_REPO, GITHUB_TOKEN } = process.env;
+        const branch = "main";
+        const dataPath = "src/data/products.json";
+        let productsData = null;
+
+        try {
+            // Пытаемся получить свежие данные с GitHub, чтобы не ждать пересборки Vercel
+            const ghRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${dataPath}?ref=${branch}`, {
+                headers: {
+                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (ghRes.ok) {
+                const ghJson = await ghRes.json();
+                const content = Buffer.from(ghJson.content, 'base64').toString('utf8');
+                productsData = JSON.parse(content);
+                console.log('[Sync] Свежие данные товаров успешно получены с GitHub.');
+            }
+        } catch (syncErr) {
+            console.error('[Sync Error] Не удалось получить данные с GitHub:', syncErr.message);
+        }
+
+        // Если с GitHub не вышло, берем локальные (старые) данные
+        if (!productsData) {
+            productsData = require('../src/data/products.json');
+            console.log('[Sync] Используются локальные данные товаров (возможна задержка синхронизации).');
+        }
+
         // =========================================================
         // ЗАЩИТА ОТ ДВОЙНЫХ СПИСАНИЙ (Idempotency Key)
         // Ключ = хэш от содержимого заказа (имя + телефон + сумма + товары)
