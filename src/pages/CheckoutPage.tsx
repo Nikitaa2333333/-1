@@ -192,26 +192,27 @@ export const CheckoutPage = () => {
                 });
 
                 if (typeof checkout.on === 'function') {
-                    // Используем success и fail для перехвата событий без редиректа
+                    // Используем success для перехвата успешной оплаты
                     checkout.on('success', () => {
-                        console.log('YooKassa event: success');
-                        setShowPaymentWidget(false);
+                        console.log('🍓 [YooKassa] Payment SUCCESS event received');
                         setStep("success");
+                        setShowPaymentWidget(false);
                         clearCart();
                         try { checkout.destroy(); } catch (e) { }
                     });
+
+                    // На всякий случай слушаем complete
                     checkout.on('complete', () => {
-                        // На случай, если ЮKassa пришлет complete
-                        console.log('YooKassa event: complete');
-                        setShowPaymentWidget(false);
-                        setStep("success");
-                        clearCart();
-                        try { checkout.destroy(); } catch (e) { }
+                        console.log('🍓 [YooKassa] Widget COMPLETED');
+                        // В некоторых случаях success может не прийти вовремя,
+                        // но если мы здесь, значит пользователь закончил работу с виджетом.
                     });
+
                     checkout.on('fail', () => {
-                        console.log('YooKassa event: fail');
+                        console.warn('🍓 [YooKassa] Payment FAILED event received');
                         setShowPaymentWidget(false);
-                        alert("Ошибка при оплате. Попробуйте еще раз.");
+                        setWidgetError(true);
+                        setPromoError("Оплата не удалась или была отменена. Если вы уже оплатили — подождите сообщения от менеджера.");
                         try { checkout.destroy(); } catch (e) { }
                     });
                 }
@@ -593,7 +594,21 @@ export const CheckoutPage = () => {
             {showPaymentWidget && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
                     <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white p-6 shadow-2xl">
-                        <button onClick={() => setShowPaymentWidget(false)} className="absolute top-4 right-4 z-10 p-2 text-gray-400 transition-colors hover:text-gray-600"><X size={24} /></button>
+                        <button
+                            onClick={() => {
+                                // Если пользователь закрывает виджет вручную после того как оплатил,
+                                // он должен иметь возможность увидеть экран успеха.
+                                // Мы можем спросить его или просто закрыть.
+                                if (confirm("Если вы уже завершили оплату, нажмите ОК, чтобы увидеть подтверждение заказа. Если оплата не прошла — нажмите Отмена.")) {
+                                    setStep("success");
+                                    clearCart();
+                                }
+                                setShowPaymentWidget(false);
+                            }}
+                            className="absolute top-4 right-4 z-10 p-2 text-gray-400 transition-colors hover:text-gray-600"
+                        >
+                            <X size={24} />
+                        </button>
                         <div className="mb-4"><h3 className="text-xl font-bold text-gray-900 leading-tight">Оплата заказа</h3><p className="text-sm text-gray-500">Безопасный платеж через ЮKassa</p></div>
                         <div id="payment-form" className="min-h-[400px] flex items-center justify-center">
                             {widgetError ? (
