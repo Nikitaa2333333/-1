@@ -46,7 +46,8 @@
     {
       "code": "KLUB10",
       "discount": 10,
-      "desc": "Скидка 10% на первый заказ"
+      "desc": "Скидка 10% на первый заказ",
+      "isActive": true
     }
   ],
   "contacts": {

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import productsData from '../data/products.json';
 
 export interface CartItem {
     id: number;
@@ -18,12 +19,17 @@ interface CartContextType {
     clearCart: () => void;
     totalItems: number;
     totalPrice: number;
+    subtotal?: number;
+    appliedPromo: { code: string; discount: number } | null;
+    applyPromo: (code: string) => { success: boolean; message: string };
+    removePromo: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [items, setItems] = useState<CartItem[]>([]);
+    const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
 
     // Load cart from localStorage
     useEffect(() => {
@@ -82,14 +88,36 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const clearCart = () => {
         setItems([]);
+        setAppliedPromo(null);
+    };
+
+    const applyPromo = (code: string) => {
+        const promo = (productsData as any).promoCodes?.find((p: any) => p.code.toUpperCase() === code.toUpperCase() && p.isActive !== false);
+
+        if (promo) {
+            setAppliedPromo({ code: promo.code, discount: promo.discount });
+            return { success: true, message: `Промокод применен! Скидка ${promo.discount}%` };
+        } else {
+            return { success: false, message: 'Неверный или неактивный промокод' };
+        }
+    };
+
+    const removePromo = () => {
+        setAppliedPromo(null);
     };
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalPrice = appliedPromo
+        ? Math.round(subtotal * (1 - appliedPromo.discount / 100))
+        : subtotal;
 
     return (
         <CartContext.Provider
-            value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice }}
+            value={{
+                items, addToCart, removeFromCart, updateQuantity, clearCart,
+                totalItems, totalPrice, appliedPromo, applyPromo, removePromo
+            }}
         >
             {children}
         </CartContext.Provider>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -5,7 +6,20 @@ import { useCart } from "../context/CartContext";
 
 export const CartDrawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
     const navigate = useNavigate();
-    const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart();
+    const { items, updateQuantity, removeFromCart, totalPrice, totalItems, appliedPromo, applyPromo, removePromo } = useCart();
+    const [promoInput, setPromoInput] = useState("");
+    const [promoError, setPromoError] = useState("");
+
+    const handleApplyPromo = () => {
+        if (!promoInput.trim()) return;
+        const result = applyPromo(promoInput);
+        if (result.success) {
+            setPromoInput("");
+            setPromoError("");
+        } else {
+            setPromoError(result.message);
+        }
+    };
 
     const goToCheckout = () => {
         onClose();
@@ -113,8 +127,48 @@ export const CartDrawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                             {/* Footer */}
                             {items.length > 0 && (
                                 <div className="p-6 bg-brand-pink/5 border-t border-brand-pink/10 space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-brand-dark/60 font-sans">Итого</span>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                placeholder="ПРОМОКОД"
+                                                className="flex-grow bg-white border border-brand-pink/20 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:border-brand-hot transition-all uppercase"
+                                                value={promoInput}
+                                                onChange={(e) => {
+                                                    setPromoInput(e.target.value);
+                                                    setPromoError("");
+                                                }}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
+                                            />
+                                            <button
+                                                onClick={handleApplyPromo}
+                                                className="bg-brand-dark text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-brand-hot transition-all shrink-0"
+                                            >
+                                                ОК
+                                            </button>
+                                        </div>
+                                        {appliedPromo && (
+                                            <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                                                <span className="text-green-600 text-[10px] font-black uppercase tracking-wider">
+                                                    Скидка {appliedPromo.discount}% принесена! 🍓
+                                                </span>
+                                                <button onClick={removePromo} className="text-green-600 hover:text-red-500 transition-colors">
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        )}
+                                        {promoError && <p className="text-red-500 text-[10px] font-bold pl-1 italic">{promoError}</p>}
+                                    </div>
+
+                                    <div className="flex justify-between items-center pt-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-brand-dark/60 font-sans text-sm">Итого</span>
+                                            {appliedPromo && (
+                                                <span className="text-[10px] text-brand-dark/30 line-through">
+                                                    {Math.round(totalPrice / (1 - appliedPromo.discount / 100))} ₽
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className="font-dela text-2xl text-brand-dark">
                                             {totalPrice} ₽
                                         </span>

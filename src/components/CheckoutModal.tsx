@@ -3,11 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, MapPin, Phone, User, Tag, Package, Bike, ChevronRight, CheckCircle2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 
-const PROMO_CODES: Record<string, number> = {
-    "LETO2025": 10,
-    "APELSINKA": 15,
-    "SALE10": 10,
-};
+
 
 const DELIVERY_ZONES = [
     { label: "до 3 км", price: 150 },
@@ -19,7 +15,7 @@ const DELIVERY_ZONES = [
 type Step = "form" | "success";
 
 export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-    const { items, totalPrice, clearCart } = useCart();
+    const { items, totalPrice, clearCart, appliedPromo, applyPromo: applyPromoGlobal, removePromo } = useCart();
 
     const [step, setStep] = useState<Step>("form");
     const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
@@ -32,23 +28,21 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
     const [floor, setFloor] = useState("");
     const [zone, setZone] = useState(0); // index in DELIVERY_ZONES
     const [promo, setPromo] = useState("");
-    const [promoApplied, setPromoApplied] = useState<number | null>(null);
     const [promoError, setPromoError] = useState("");
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const deliveryCost = deliveryType === "pickup" ? 0 : (DELIVERY_ZONES[zone].price ?? 0);
-    const discount = promoApplied ? Math.round(totalPrice * promoApplied / 100) : 0;
+    const discount = appliedPromo ? Math.round(totalPrice * appliedPromo.discount / 100) : 0;
     const finalTotal = totalPrice - discount + deliveryCost;
 
-    const applyPromo = () => {
-        const code = promo.trim().toUpperCase();
-        if (PROMO_CODES[code]) {
-            setPromoApplied(PROMO_CODES[code]);
+    const handleApplyPromo = () => {
+        if (!promo.trim()) return;
+        const result = applyPromoGlobal(promo);
+        if (result.success) {
             setPromoError("");
         } else {
-            setPromoApplied(null);
-            setPromoError("Промокод не найден или уже истёк");
+            setPromoError(result.message);
         }
     };
 
@@ -70,7 +64,7 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
             orderText += `🗺 <b>Зона:</b> ${DELIVERY_ZONES[zone].label} (${DELIVERY_ZONES[zone].price}₽)\n`;
         }
         if (comment) orderText += `💬 <b>Комментарий:</b> ${comment}\n`;
-        if (promoApplied) orderText += `🏷 <b>Промокод:</b> ${promo.toUpperCase()} (-${promoApplied}%)\n`;
+        if (appliedPromo) orderText += `🏷 <b>Промокод:</b> ${appliedPromo.code} (-${appliedPromo.discount}%)\n`;
 
         orderText += `\n🛍 <b>Корзина:</b>\n`;
         items.forEach((item: any) => {
@@ -109,7 +103,7 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
         setPhone(""); setName(""); setAddress("");
         setApartment(""); setIntercom(""); setEntrance(""); setFloor("");
         setPromo("");
-        setPromoApplied(null); setPromoError(""); setComment("");
+        setPromoError(""); setComment("");
         onClose();
     };
 
@@ -266,24 +260,32 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                                                 type="text"
                                                 placeholder="Промокод"
                                                 value={promo}
-                                                onChange={(e) => { setPromo(e.target.value); setPromoApplied(null); setPromoError(""); }}
-                                                className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-all"
+                                                onChange={(e) => {
+                                                    setPromo(e.target.value);
+                                                    setPromoError("");
+                                                }}
+                                                className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-all uppercase"
                                             />
                                         </div>
                                         <button
-                                            onClick={applyPromo}
+                                            onClick={handleApplyPromo}
                                             className="px-4 py-3.5 bg-brand-dark text-white rounded-xl font-bold text-sm hover:bg-brand-hot transition-all"
                                         >
-                                            Применить
+                                            OK
                                         </button>
                                     </div>
 
-                                    {promoApplied && (
-                                        <p className="text-green-600 text-xs font-bold px-1 flex items-center gap-1">
-                                            <CheckCircle2 className="w-3 h-3" /> Промокод применён: скидка {promoApplied}%
-                                        </p>
+                                    {appliedPromo && (
+                                        <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                                            <p className="text-green-600 text-xs font-bold flex items-center gap-1">
+                                                <CheckCircle2 className="w-3 h-3" /> Скидка {appliedPromo.discount}% ({appliedPromo.code})
+                                            </p>
+                                            <button onClick={removePromo} className="text-green-600 hover:text-red-500">
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
                                     )}
-                                    {promoError && <p className="text-red-500 text-xs px-1">{promoError}</p>}
+                                    {promoError && <p className="text-red-500 text-xs px-1 italic">{promoError}</p>}
                                 </div>
 
                                 {/* Summary */}
@@ -296,9 +298,9 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                                             <span>Доставка</span><span>{deliveryCost} ₽</span>
                                         </div>
                                     )}
-                                    {promoApplied && (
+                                    {appliedPromo && (
                                         <div className="flex justify-between font-sans text-sm text-green-600">
-                                            <span>Скидка {promoApplied}%</span><span>−{discount} ₽</span>
+                                            <span>Скидка {appliedPromo.discount}%</span><span>−{Math.round(totalPrice * appliedPromo.discount / 100)} ₽</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between font-dela text-xl text-brand-dark border-t border-brand-pink/20 pt-2 mt-2">

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import data from '../data/products.json';
 
-type Section = 'general' | 'menu' | 'promos' | 'about';
+type Section = 'general' | 'menu' | 'promos' | 'about' | 'coupons';
 
 const EMPTY_ARRAY: any[] = [];
 
@@ -480,6 +480,7 @@ export const Dashboard = () => {
                     <TabButton id="menu" icon={ShoppingBag} label="Товары и Меню" active={activeTab} set={setActiveTab} />
                     <TabButton id="general" icon={LayoutDashboard} label="Тексты (Бегущая)" active={activeTab} set={setActiveTab} />
                     <TabButton id="promos" icon={TicketPercent} label="Предзаказ и Баннеры" active={activeTab} set={setActiveTab} />
+                    <TabButton id="coupons" icon={Sparkles} label="Промокоды" active={activeTab} set={setActiveTab} />
                     <TabButton id="about" icon={ImageIcon} label="Тексты (О нас)" active={activeTab} set={setActiveTab} />
                 </nav>
             </aside>
@@ -648,11 +649,100 @@ export const Dashboard = () => {
                                 )}
                             </div>
                         )}
+                        {activeTab === 'coupons' && (
+                            <div className="space-y-8">
+                                <div className="flex justify-between items-center bg-brand-dark text-white p-6 rounded-[2rem]">
+                                    <div>
+                                        <h3 className="font-dela text-2xl">Промокоды</h3>
+                                        <p className="text-white/50 text-sm">Управляйте скидками для ваших клиентов</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const newCoupon = { code: 'NEWCOUPON', discount: 10, isActive: true };
+                                            const newCoupons = [...(formData.promoCodes || []), newCoupon];
+                                            updateField('promoCodes', newCoupons);
+                                        }}
+                                        className="bg-brand-hot text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-white hover:text-brand-dark transition-all shadow-lg"
+                                    >
+                                        <Plus className="w-5 h-5" /> Создать
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {(formData.promoCodes || []).map((promo: any, idx: number) => (
+                                        <div key={idx} className="bg-white border border-brand-pink/10 p-6 rounded-[2rem] shadow-sm space-y-4 hover:border-brand-hot transition-all relative group">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-grow space-y-4">
+                                                    <div>
+                                                        <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">Код промокода</label>
+                                                        <DebouncedInput
+                                                            value={promo.code}
+                                                            onChange={(val: string) => {
+                                                                const newCoupons = [...formData.promoCodes] as any[];
+                                                                newCoupons[idx].code = val.toUpperCase().replace(/\s/g, '');
+                                                                updateField('promoCodes', newCoupons);
+                                                            }}
+                                                            className="w-full bg-brand-pink/5 border-none rounded-xl px-4 py-2 font-bold text-lg text-brand-dark outline-none focus:ring-2 focus:ring-brand-hot"
+                                                            placeholder="НАПР. VESNA2025"
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">Скидка (%)</label>
+                                                            <DebouncedInput
+                                                                type="number"
+                                                                value={promo.discount}
+                                                                onChange={(val: string) => {
+                                                                    const newCoupons = [...formData.promoCodes] as any[];
+                                                                    newCoupons[idx].discount = parseInt(val) || 0;
+                                                                    updateField('promoCodes', newCoupons);
+                                                                }}
+                                                                className="w-full bg-brand-pink/5 border-none rounded-xl px-4 py-2 font-bold text-lg text-brand-dark outline-none focus:ring-2 focus:ring-brand-hot"
+                                                            />
+                                                        </div>
+                                                        <div className="flex flex-col justify-end pb-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newCoupons = [...formData.promoCodes] as any[];
+                                                                    newCoupons[idx].isActive = !newCoupons[idx].isActive;
+                                                                    updateField('promoCodes', newCoupons);
+                                                                }}
+                                                                className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${promo.isActive ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'}`}
+                                                            >
+                                                                {promo.isActive ? 'Активен' : 'Отключен'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm('Удалить этот промокод?')) {
+                                                            const newCoupons = formData.promoCodes.filter((_: any, i: number) => i !== idx);
+                                                            updateField('promoCodes', newCoupons);
+                                                        }
+                                                    }}
+                                                    className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(formData.promoCodes || []).length === 0 && (
+                                        <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border-2 border-dashed border-brand-pink/20">
+                                            < TicketPercent className="w-16 h-16 text-brand-pink/20 mx-auto mb-4" />
+                                            <p className="text-brand-dark/30 font-bold">Промокодов пока нет. Создайте первый!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 </AnimatePresence>
             </main>
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-brand-pink/20 flex justify-around p-4 pb-safe z-50">
                 <MobileTab id="menu" icon={ShoppingBag} active={activeTab} set={setActiveTab} />
+                <MobileTab id="coupons" icon={Sparkles} active={activeTab} set={setActiveTab} />
                 <MobileTab id="general" icon={LayoutDashboard} active={activeTab} set={setActiveTab} />
             </nav>
         </div>
