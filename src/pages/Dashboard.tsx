@@ -1,4 +1,5 @@
 import React, { useState, useCallback, memo, useEffect, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, ShoppingBag, Type, TicketPercent,
@@ -658,7 +659,7 @@ export const Dashboard = () => {
                                     </div>
                                     <button
                                         onClick={() => {
-                                            const newCoupon = { code: 'NEWCOUPON', discount: 10, isActive: true };
+                                            const newCoupon = { id: uuidv4(), code: 'NEWCOUPON', discount: 10, isActive: true };
                                             const newCoupons = [...(formData.promoCodes || []), newCoupon];
                                             updateField('promoCodes', newCoupons);
                                         }}

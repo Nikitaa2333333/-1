@@ -113,7 +113,7 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
         onClose();
     };
 
-    const isFormValid = name.trim() && phone.trim().length >= 6 && (deliveryType === "pickup" || address.trim()) && (deliveryTime === "today" || targetDate.trim());
+    const isFormValid = name.trim() && phone.replace(/\D/g, '').length === 11 && (deliveryType === "pickup" || address.trim()) && (deliveryTime === "today" || targetDate.trim());
 
     return (
         <AnimatePresence>
@@ -244,7 +244,20 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                                             type="tel"
                                             placeholder="+7 (___) ___-__-__"
                                             value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
+                                            onChange={(e) => {
+                                                let input = e.target.value.replace(/\D/g, '');
+                                                if (!input) { setPhone(''); return; }
+                                                if (input[0] === '8' || input[0] === '7') input = '7' + input.slice(1);
+                                                else if (input[0] === '9') input = '7' + input;
+                                                else input = '7' + input;
+                                                input = input.slice(0, 11);
+                                                let formatted = '+7';
+                                                if (input.length > 1) formatted += ' (' + input.substring(1, 4);
+                                                if (input.length >= 5) formatted += ') ' + input.substring(4, 7);
+                                                if (input.length >= 8) formatted += '-' + input.substring(7, 9);
+                                                if (input.length >= 10) formatted += '-' + input.substring(9, 11);
+                                                setPhone(formatted);
+                                            }}
                                             className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-brand-pink/20 bg-brand-pink/5 font-sans text-sm focus:outline-none focus:border-brand-hot focus:bg-white transition-all"
                                         />
                                     </div>

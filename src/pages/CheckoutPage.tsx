@@ -150,7 +150,7 @@ export const CheckoutPage = () => {
     const futureDiscount = deliveryTime === "later" ? Math.round(totalPrice * 0.1) : 0;
     const discount = promoDiscount + futureDiscount;
     const finalTotal = totalPrice - discount + deliveryCost;
-    const isFormValid = name.trim() && phone.trim().length >= 6 && (deliveryType === "pickup" || (address.trim() && !isCalculating)) && (deliveryTime === "today" || targetDate.trim());
+    const isFormValid = name.trim() && phone.replace(/\D/g, '').length === 11 && (deliveryType === "pickup" || (address.trim() && !isCalculating)) && (deliveryTime === "today" || targetDate.trim());
 
     const handleApplyPromo = () => {
         if (!promo.trim()) return;
@@ -457,7 +457,20 @@ export const CheckoutPage = () => {
                             </div>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                                <input type="tel" placeholder="+7 (___) ___-__-__" value={phone} onChange={e => setPhone(e.target.value)} className={inputClass} />
+                                <input type="tel" placeholder="+7 (___) ___-__-__" value={phone} onChange={e => {
+                                    let input = e.target.value.replace(/\D/g, '');
+                                    if (!input) { setPhone(''); return; }
+                                    if (input[0] === '8' || input[0] === '7') input = '7' + input.slice(1);
+                                    else if (input[0] === '9') input = '7' + input;
+                                    else input = '7' + input;
+                                    input = input.slice(0, 11);
+                                    let formatted = '+7';
+                                    if (input.length > 1) formatted += ' (' + input.substring(1, 4);
+                                    if (input.length >= 5) formatted += ') ' + input.substring(4, 7);
+                                    if (input.length >= 8) formatted += '-' + input.substring(7, 9);
+                                    if (input.length >= 10) formatted += '-' + input.substring(9, 11);
+                                    setPhone(formatted);
+                                }} className={inputClass} />
                             </div>
                         </div>
 
