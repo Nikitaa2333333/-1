@@ -184,7 +184,7 @@ export const CheckoutPage = () => {
 
                 const checkout = new YooWidget({
                     confirmation_token: paymentToken,
-                    return_url: window.location.origin + window.location.pathname + '?success=true',
+                    // Убираем return_url, чтобы виджет сразу кидал событие success, а не ждал редиректа!
                     error_callback: (error: any) => {
                         console.error("YooKassa Widget Error:", error);
                         setWidgetError(true);
@@ -193,14 +193,27 @@ export const CheckoutPage = () => {
                 });
 
                 if (typeof checkout.on === 'function') {
+                    // Используем success и fail для перехвата событий без редиректа
                     checkout.on('success', () => {
+                        console.log('YooKassa event: success');
                         setShowPaymentWidget(false);
                         setStep("success");
                         clearCart();
+                        try { checkout.destroy(); } catch (e) { }
+                    });
+                    checkout.on('complete', () => {
+                        // На случай, если ЮKassa пришлет complete
+                        console.log('YooKassa event: complete');
+                        setShowPaymentWidget(false);
+                        setStep("success");
+                        clearCart();
+                        try { checkout.destroy(); } catch (e) { }
                     });
                     checkout.on('fail', () => {
+                        console.log('YooKassa event: fail');
                         setShowPaymentWidget(false);
                         alert("Ошибка при оплате. Попробуйте еще раз.");
+                        try { checkout.destroy(); } catch (e) { }
                     });
                 }
 
