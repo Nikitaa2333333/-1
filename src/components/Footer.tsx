@@ -1,6 +1,8 @@
 import { MapPin, Clock, Phone } from "lucide-react";
+import data from "../data/products.json";
 
 export const Footer = () => {
+  const { contacts } = data;
   const navLinks = [
     { label: "Главная", href: "#hero" },
     { label: "О нас", href: "#about" },
@@ -31,7 +33,7 @@ export const Footer = () => {
                 <div>
                   <p className="font-sans text-lg font-bold">Наш адрес</p>
                   <p className="text-brand-dark/70 font-sans text-base">
-                    Украинский бульвар, 8, строение 1
+                    {contacts?.address || "Украинский бульвар, 8, строение 1"}
                   </p>
                 </div>
               </div>
@@ -41,7 +43,7 @@ export const Footer = () => {
                 <div>
                   <p className="font-sans text-lg font-bold">Режим работы</p>
                   <p className="text-brand-dark/70 font-sans text-base">
-                    Ежедневно с 9:00 до 20:00
+                    {contacts?.schedule || "Ежедневно с 9:00 до 20:00"}
                   </p>
                 </div>
               </div>
@@ -50,8 +52,8 @@ export const Footer = () => {
                 <Phone className="w-7 h-7 text-brand-hot shrink-0 mt-1" />
                 <div>
                   <p className="font-sans text-lg font-bold">Телефон</p>
-                  <a href="tel:+79001234567" className="text-brand-dark/70 hover:text-brand-hot font-sans text-base transition-colors">
-                    +7 (900) 123-45-67
+                  <a href={`tel:${(contacts?.phone || "+79001234567").replace(/[^\d+]/g, '')}`} className="text-brand-dark/70 hover:text-brand-hot font-sans text-base transition-colors">
+                    {contacts?.phone || "+7 (900) 123-45-67"}
                   </a>
                 </div>
               </div>

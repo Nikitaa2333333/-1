@@ -1,4 +1,4 @@
-import { Star, MessageCircleHeart } from "lucide-react";
+import { Star } from "lucide-react";
 
 const reviews = [
     {
@@ -35,6 +35,27 @@ const reviews = [
         date: "Февраль 2026",
         rating: 5,
         text: "Всё супер! Буду заказывать ещё.",
+    },
+    {
+        id: 6,
+        name: "Екатерина",
+        date: "Январь 2026",
+        rating: 4,
+        text: "Очень вкусный шоколад! Ягодки крупные и сочные. Обязательно вернусь.",
+    },
+    {
+        id: 7,
+        name: "Мария",
+        date: "Январь 2026",
+        rating: 5,
+        text: "Заказывала в подарок маме, она в полном восторге! Оформление на высоте 🍓",
+    },
+    {
+        id: 8,
+        name: "Алексей",
+        date: "Январь 2026",
+        rating: 5,
+        text: "Доставили точно ко времени. Девушке очень понравилось, съели за вечер.",
     }
 ];
 
@@ -46,15 +67,11 @@ export const Reviews = () => {
 
             <div className="container mx-auto px-4 relative z-10">
                 <div className="text-center mb-16">
-                    <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-pink/20 rounded-full text-brand-hot text-sm font-bold tracking-widest uppercase mb-6">
-                        <MessageCircleHeart className="w-5 h-5" />
-                        <span>Flowwow</span>
-                    </div>
                     <h2 className="font-dela text-4xl md:text-5xl lg:text-[4rem] mb-6 text-brand-dark leading-none">
                         Отзывы о <span className="text-brand-hot">нас</span>
                     </h2>
                     <p className="text-brand-dark/70 font-sans text-lg md:text-xl max-w-2xl mx-auto">
-                        Что говорят наши гости? Мы собрали честные отзывы с платформы Flowwow со средней оценкой 5.0 🍓
+                        Что говорят наши гости? Мы собрали честные отзывы с платформы Flowwow со средней оценкой 4.8 🍓
                     </p>
                 </div>
 
@@ -76,7 +93,7 @@ export const Reviews = () => {
                                 </div>
                                 <div className="flex items-center bg-brand-hot/10 px-3 py-1.5 rounded-full">
                                     <Star className="w-4 h-4 text-brand-hot fill-brand-hot mr-1" />
-                                    <span className="font-bold text-brand-hot text-sm">{review.rating}.0</span>
+                                    <span className="font-bold text-brand-hot text-sm">{review.rating.toFixed(1)}</span>
                                 </div>
                             </div>
                             <div className="flex-grow">
@@ -87,7 +104,7 @@ export const Reviews = () => {
 
                             <div className="mt-8 flex gap-1">
                                 {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className="w-4 h-4 text-brand-hot/30 fill-brand-hot" />
+                                    <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-brand-hot fill-brand-hot' : 'text-brand-hot/30 fill-brand-hot/30'}`} />
                                 ))}
                             </div>
                         </div>
@@ -96,7 +113,7 @@ export const Reviews = () => {
 
                 <div className="flex justify-center mt-4">
                     <a
-                        href="https://flowwow.com/shop/apelsinkaf-2080/"
+                        href="https://flowwow.com/shop/apelsinkaf-2080/#review"
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-2 px-8 py-4 bg-white border-2 border-brand-pink/30 text-brand-dark rounded-full font-bold hover:bg-brand-hot hover:text-white hover:border-brand-hot transition-all shadow-sm cursor-pointer"

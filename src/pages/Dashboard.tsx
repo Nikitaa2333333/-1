@@ -553,6 +553,14 @@ export const Dashboard = () => {
                                         <DebouncedTextarea value={formData.marqueeText} onChange={(val: string) => updateField('marqueeText', val)} className="w-full bg-white border-2 border-brand-pink/10 rounded-3xl p-6 font-bold text-lg text-brand-dark outline-none transition-all h-40" />
                                     </div>
                                 </GlassCard>
+
+                                <GlassCard title="Контактные данные">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <InputField label="Телефон" value={formData.contacts?.phone || ''} onChange={(val: string) => updateField('contacts.phone', val)} />
+                                        <InputField label="Адрес" value={formData.contacts?.address || ''} onChange={(val: string) => updateField('contacts.address', val)} />
+                                        <InputField label="Режим работы" value={formData.contacts?.schedule || ''} onChange={(val: string) => updateField('contacts.schedule', val)} />
+                                    </div>
+                                </GlassCard>
                                 {formData.orderCTA && (
                                     <GlassCard title="Нижний блок">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

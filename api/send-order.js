@@ -35,7 +35,26 @@ export default async function handler(req, res) {
     console.log('[API] New order:', { name: order.name, total: order.total, type: order.type });
 
     try {
-        const idempotenceKey = Date.now().toString() + Math.random().toString(36).substring(7);
+        // =========================================================
+        // ЗАЩИТА ОТ ДВОЙНЫХ СПИСАНИЙ (Idempotency Key)
+        // Ключ = хэш от содержимого заказа (имя + телефон + сумма + товары)
+        // Если клиент нажмёт "Оплатить" дважды с теми же данными —
+        // ЮKassa вернёт тот же объект платежа БЕЗ нового списания!
+        // =========================================================
+        const orderFingerprint = [
+            order.name || '',
+            String(order.phone || '').replace(/[^0-9]/g, ''),
+            String(order.total || ''),
+            JSON.stringify((order.items || []).map(i => `${i.name}:${i.quantity}:${i.price}`).sort())
+        ].join('|');
+
+        // Простой детерминированный хэш (djb2)
+        let hash = 5381;
+        for (let i = 0; i < orderFingerprint.length; i++) {
+            hash = ((hash << 5) + hash) ^ orderFingerprint.charCodeAt(i);
+        }
+        const idempotenceKey = `order-${Math.abs(hash).toString(16)}-${String(order.total).replace('.', '')}`;
+        console.log('[API] Idempotence-Key:', idempotenceKey);
         const auth = Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64');
 
         const { type = 'embedded' } = order;
