@@ -27,8 +27,11 @@ export const CheckoutPage = () => {
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [paymentToken, setPaymentToken] = useState<string | null>(null);
+    const [paymentId, setPaymentId] = useState<string | null>(null);
     const [showPaymentWidget, setShowPaymentWidget] = useState(false);
     const [widgetError, setWidgetError] = useState<boolean>(false);
+    const [paymentPolling, setPaymentPolling] = useState(false);
+    const pollingRef = useRef<any>(null);
     const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null);
     const [isCalculating, setIsCalculating] = useState(false);
     const [manualDeliveryCost, setManualDeliveryCost] = useState<number | null>(null);
@@ -162,6 +165,42 @@ export const CheckoutPage = () => {
         }
     };
 
+    // Функция перехода к успешному экрану
+    const handlePaymentSuccess = () => {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        setPaymentPolling(false);
+        setStep("success");
+        setShowPaymentWidget(false);
+        clearCart();
+    };
+
+    // Polling статуса платежа (запрашиваем каждые 3 сек)
+    useEffect(() => {
+        if (!paymentId || !showPaymentWidget) {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            return;
+        }
+
+        setPaymentPolling(true);
+        pollingRef.current = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/check-payment?id=${paymentId}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                console.log('[Polling] Payment status:', data.status);
+                if (data.status === 'succeeded') {
+                    handlePaymentSuccess();
+                }
+            } catch (e) {
+                // игнорируем ошибки сети
+            }
+        }, 3000);
+
+        return () => {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+        };
+    }, [paymentId, showPaymentWidget]);
+
     // Инициализация виджета ЮKassa
     useEffect(() => {
         if (!paymentToken || !showPaymentWidget) {
@@ -183,7 +222,6 @@ export const CheckoutPage = () => {
 
                 const checkout = new YooWidget({
                     confirmation_token: paymentToken,
-                    // Убираем return_url, чтобы виджет сразу кидал событие success, а не ждал редиректа!
                     error_callback: (error: any) => {
                         console.error("YooKassa Widget Error:", error);
                         setWidgetError(true);
@@ -192,27 +230,23 @@ export const CheckoutPage = () => {
                 });
 
                 if (typeof checkout.on === 'function') {
-                    // Используем success для перехвата успешной оплаты
+                    // Механизм 1: native событие виджета
                     checkout.on('success', () => {
-                        console.log('🍓 [YooKassa] Payment SUCCESS event received');
-                        setStep("success");
-                        setShowPaymentWidget(false);
-                        clearCart();
+                        console.log('🍓 [YooKassa] SUCCESS event');
+                        handlePaymentSuccess();
                         try { checkout.destroy(); } catch (e) { }
                     });
 
-                    // На всякий случай слушаем complete
                     checkout.on('complete', () => {
-                        console.log('🍓 [YooKassa] Widget COMPLETED');
-                        // В некоторых случаях success может не прийти вовремя,
-                        // но если мы здесь, значит пользователь закончил работу с виджетом.
+                        console.log('🍓 [YooKassa] COMPLETE event — проверяем статус через polling');
+                        // complete может прийти и при успехе, и при закрытии — polling разберётся
                     });
 
                     checkout.on('fail', () => {
-                        console.warn('🍓 [YooKassa] Payment FAILED event received');
+                        console.warn('🍓 [YooKassa] FAIL event');
                         setShowPaymentWidget(false);
                         setWidgetError(true);
-                        setPromoError("Оплата не удалась или была отменена. Если вы уже оплатили — подождите сообщения от менеджера.");
+                        setPromoError("Оплата не удалась или была отменена.");
                         try { checkout.destroy(); } catch (e) { }
                     });
                 }
@@ -330,6 +364,7 @@ export const CheckoutPage = () => {
 
             if (result.confirmationToken && payType === 'embedded') {
                 setPaymentToken(result.confirmationToken);
+                if (result.paymentId) setPaymentId(result.paymentId); // для polling
                 setShowPaymentWidget(true);
                 setIsSubmitting(false);
                 return;
@@ -595,35 +630,25 @@ export const CheckoutPage = () => {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
                     <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white p-6 shadow-2xl">
                         <button
-                            onClick={() => {
-                                // Если пользователь закрывает виджет вручную после того как оплатил,
-                                // он должен иметь возможность увидеть экран успеха.
-                                // Мы можем спросить его или просто закрыть.
-                                if (confirm("Если вы уже завершили оплату, нажмите ОК, чтобы увидеть подтверждение заказа. Если оплата не прошла — нажмите Отмена.")) {
-                                    setStep("success");
-                                    clearCart();
-                                }
-                                setShowPaymentWidget(false);
-                            }}
+                            onClick={() => setShowPaymentWidget(false)}
                             className="absolute top-4 right-4 z-10 p-2 text-gray-400 transition-colors hover:text-gray-600"
                         >
                             <X size={24} />
                         </button>
-                        <div className="mb-4"><h3 className="text-xl font-bold text-gray-900 leading-tight">Оплата заказа</h3><p className="text-sm text-gray-500">Безопасный платеж через ЮKassa</p></div>
+                        <div className="mb-4">
+                            <h3 className="text-xl font-bold text-gray-900 leading-tight">Оплата заказа</h3>
+                            <p className="text-sm text-gray-500">Безопасный платеж через ЮKassa</p>
+                        </div>
                         <div id="payment-form" className="min-h-[400px] flex items-center justify-center">
                             {widgetError ? (
                                 <div className="text-center p-6 bg-red-50 rounded-2xl border border-red-100">
                                     <p className="text-red-600 font-bold mb-2">Форма оплаты заблокирована</p>
                                     <p className="text-sm text-red-500/80 leading-relaxed font-sans mb-6">
                                         Похоже, AdBlock или расширение безопасности блокирует загрузку модуля оплаты. <br /><br />
-                                        <b>Ничего страшного! Вы можете оплатить напрямую на защищенной странице ЮKassa:</b>
+                                        <b>Вы можете оплатить напрямую на защищенной странице ЮKassa:</b>
                                     </p>
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            handleSubmit('redirect');
-                                        }}
+                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleSubmit('redirect'); }}
                                         disabled={isSubmitting}
                                         className="w-full py-4 bg-brand-hot text-white rounded-xl font-bold shadow-lg hover:bg-brand-dark transition-all flex items-center justify-center gap-2"
                                     >
@@ -637,6 +662,23 @@ export const CheckoutPage = () => {
                                 </div>
                             )}
                         </div>
+                        {/* Механизм 3: Кнопка ручного подтверждения — появляется после рендера виджета */}
+                        {isWidgetRendered.current && (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                <button
+                                    onClick={handlePaymentSuccess}
+                                    className="w-full py-3 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Я уже оплатил — показать подтверждение
+                                </button>
+                                {paymentPolling && (
+                                    <p className="text-center text-xs text-gray-400 mt-2 flex items-center justify-center gap-1">
+                                        <Loader2 className="w-3 h-3 animate-spin" /> Проверяем статус оплаты автоматически...
+                                    </p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

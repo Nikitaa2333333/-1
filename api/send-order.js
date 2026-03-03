@@ -11,6 +11,8 @@
  * 4. Сумма позиций чека = сумме платежа (копейка в копейку)
  */
 
+import productsData from '../src/data/products.json';
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -41,11 +43,15 @@ export default async function handler(req, res) {
         // Если клиент нажмёт "Оплатить" дважды с теми же данными —
         // ЮKassa вернёт тот же объект платежа БЕЗ нового списания!
         // =========================================================
+        // ВАЖНО: включаем timestamp чтобы каждый новый вызов имел УНИКАЛЬНЫЙ ключ.
+        // Без timestamp при повторном нажатии "Оформить" (с теми же данными) ЮKassa
+        // вернёт ошибку "already used this idempotence key".
         const orderFingerprint = [
             order.name || '',
             String(order.phone || '').replace(/[^0-9]/g, ''),
             String(order.total || ''),
-            JSON.stringify((order.items || []).map(i => `${i.name}:${i.quantity}:${i.price}`).sort())
+            JSON.stringify((order.items || []).map(i => `${i.name}:${i.quantity}:${i.price}`).sort()),
+            String(order.timestamp || Date.now()) // <-- ФИКС: уникальность по времени
         ].join('|');
 
         // Простой детерминированный хэш (djb2)
@@ -62,14 +68,60 @@ export default async function handler(req, res) {
         const protocol = req.headers['x-forwarded-proto'] || 'https';
         const returnUrl = `${protocol}://${host}/checkout?success=true`;
 
-        // === СУММЫ ===
-        const totalAmount = parseFloat(order.total) || 0;
-        const deliveryCost = parseFloat(order.deliveryCost) || 0;
-        const discount = parseFloat(order.discount) || 0;
+        // === ЗАЩИТА: ПЕРЕСЧЕТ СУММЫ НА СЕРВЕРЕ (Anti-Fraud) ===
+        // Мы не доверяем total, пришедшему с фронта. Пересчитываем сами.
+        let calculatedBaseTotal = 0;
+        const serverProducts = productsData.products || [];
 
-        if (totalAmount <= 0) {
+        if (!order.items || !Array.isArray(order.items) || order.items.length === 0) {
+            return res.status(400).json({ error: 'Корзина пуста' });
+        }
+
+        order.items.forEach(clientItem => {
+            // Ищем товар в нашей базе по имени (в идеале по ID, но в JSON имена уникальны)
+            const realProduct = serverProducts.find(p => p.name === clientItem.name);
+            if (!realProduct) {
+                throw new Error(`Товар "${clientItem.name}" не найден в базе`);
+            }
+            const price = parseFloat(realProduct.price) || 0;
+            const qty = parseInt(clientItem.quantity) || 1;
+            calculatedBaseTotal += price * qty;
+        });
+
+        // Считаем скидки точно так же, как на фронте
+        const serverPromo = productsData.promoCodes.find(p => p.code === order.appliedPromo && p.isActive);
+        const promoDiscountPct = serverPromo ? serverPromo.discount : 0;
+        const promoDiscountAmount = Math.round(calculatedBaseTotal * (promoDiscountPct / 100));
+
+        const isPreorder = order.deliveryTime === 'later';
+        const preorderDiscountAmount = isPreorder ? Math.round(calculatedBaseTotal * 0.1) : 0;
+
+        const totalDiscount = promoDiscountAmount + preorderDiscountAmount;
+
+        // Доставка тоже должна проверяться, но так как она динамическая от Yandex, 
+        // мы берем её как есть, но проверяем финальный итог.
+        const serverFinalTotal = calculatedBaseTotal - totalDiscount + (parseFloat(order.deliveryCost) || 0);
+
+        console.log('[Security] Server check:', {
+            clientTotal: order.total,
+            serverCalculated: serverFinalTotal,
+            base: calculatedBaseTotal,
+            discount: totalDiscount
+        });
+
+        // Если разница более 1 рубля (на случай округлений) — это попытка взлома
+        if (Math.abs(order.total - serverFinalTotal) > 1) {
+            console.error('[Security ALERT] Price mismatch! Potential fraud.');
+            return res.status(403).json({ error: 'Ошибка безопасности: цена заказа не совпадает с актуальной. Пожалуйста, обновите страницу.' });
+        }
+
+        if (serverFinalTotal <= 0) {
             return res.status(400).json({ error: 'Некорректная сумма заказа' });
         }
+
+        const totalAmount = serverFinalTotal; // Используем наше расчетное значение
+        const deliveryCost = parseFloat(order.deliveryCost) || 0;
+        const discount = totalDiscount; // Используем наше расчетное значение
 
         // === ПОДГОТОВКА ПОЗИЦИЙ ЧЕКА (54-ФЗ) ===
         const paymentItems = [];
@@ -226,10 +278,53 @@ export default async function handler(req, res) {
 
         console.log('[API] Payment created:', payment.id, '| status:', payment.status);
 
+        // === ОТПРАВКА УВЕДОМЛЕНИЯ "ОЖИДАЕТ ОПЛАТЫ" ===
+        const { BOT_TOKEN, ADMIN_CHAT_IDS } = process.env;
+        if (BOT_TOKEN && ADMIN_CHAT_IDS) {
+            const adminIds = ADMIN_CHAT_IDS.split(',').map(id => id.trim());
+
+            const itemsText = order.items.map(item => `• ${item.name} × ${item.quantity} — ${item.price * item.quantity} ₽`).join('\n');
+            const addressText = order.deliveryType === 'delivery'
+                ? `📍 Адрес: ${order.address}${order.apartment ? `, кв. ${order.apartment}` : ''}${order.floor ? `, эт. ${order.floor}` : ''}`
+                : '🏪 Самовывоз';
+
+            const message = [
+                '⏳ <b>НОВЫЙ ЗАКАЗ (ОЖИДАЕТ ОПЛАТЫ)</b>',
+                '',
+                itemsText,
+                '─────────────────────',
+                `💰 К оплате: <b>${totalAmount} ₽</b>`,
+                `🚚 Доставка: ${deliveryCost} ₽`,
+                `🎁 Скидка: ${discount} ₽`,
+                '─────────────────────',
+                `👤 Клиент: ${order.name}`,
+                `📞 Тел: ${order.phone}`,
+                `⏱ Время: ${order.deliveryTime === 'later' ? `На другой день (${order.targetDate || '?'})` : 'Сегодня'}`,
+                addressText,
+                order.comment ? `💬 Коммент: ${order.comment}` : '',
+                '',
+                `<i>ID платежа: ${payment.id}</i>`,
+                '<i>Менеджер, жди подтверждения оплаты от бота ✅</i>'
+            ].filter(Boolean).join('\n');
+
+            try {
+                await Promise.all(adminIds.map(chatId =>
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+                    })
+                ));
+            } catch (tgErr) {
+                console.error('[Telegram] Error sending pending notification:', tgErr);
+            }
+        }
+
         return res.status(200).json({
             success: true,
             confirmationToken: payment.confirmation?.confirmation_token,
-            paymentUrl: payment.confirmation?.confirmation_url
+            paymentUrl: payment.confirmation?.confirmation_url,
+            paymentId: payment.id   // для polling статуса на фронте
         });
 
     } catch (err) {

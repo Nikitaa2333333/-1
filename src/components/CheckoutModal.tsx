@@ -55,53 +55,55 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
         if (!phone || !name || (deliveryType === "delivery" && !address)) return;
         setIsSubmitting(true);
 
-        // 1. Формируем текст сообщения для Telegram
-        let orderText = `🚨 <b>НОВЫЙ ЗАКАЗ С САЙТА!</b>\n\n`;
-        orderText += `👤 <b>Клиент:</b> ${name}\n`;
-        orderText += `📞 <b>Телефон:</b> ${phone}\n`;
-        orderText += `🚚 <b>Тип:</b> ${deliveryType === "pickup" ? "Самовывоз" : "Доставка"}\n`;
-        orderText += `⏱ <b>Время:</b> ${deliveryTime === "later" ? `На другой день (${targetDate}) [-10%]` : "Сегодня"}\n`;
-        if (deliveryType === "delivery") {
-            orderText += `📍 <b>Адрес:</b> ${address}\n`;
-            if (apartment) orderText += `🏠 <b>Кв/офис:</b> ${apartment}\n`;
-            if (intercom) orderText += `🔔 <b>Домофон:</b> ${intercom}\n`;
-            if (entrance) orderText += `🚪 <b>Подъезд:</b> ${entrance}\n`;
-            if (floor) orderText += `⬆️ <b>Этаж:</b> ${floor}\n`;
-            orderText += `🗺 <b>Зона:</b> ${DELIVERY_ZONES[zone].label} (${DELIVERY_ZONES[zone].price}₽)\n`;
-        }
-        if (comment) orderText += `💬 <b>Комментарий:</b> ${comment}\n`;
-        if (appliedPromo) orderText += `🏷 <b>Промокод:</b> ${appliedPromo.code} (-${appliedPromo.discount}%)\n`;
-
-        orderText += `\n🛍 <b>Корзина:</b>\n`;
-        items.forEach((item: any) => {
-            orderText += `- ${item.name} (x${item.quantity}) = ${item.price * item.quantity}₽\n`;
-        });
-
-        orderText += `\n💰 <b>ИТОГО:</b> ${finalTotal}₽`;
-
-        // 2. Отправляем в Telegram
+        // 1. Отправляем на бэкенд для безопасности
         try {
-            // Замените на ваш актуальный токен и Chat ID из .env (сейчас захардкодим для работы с фронта)
-            // В идеале это нужно делать через серверлес функцию (как save-content), но для простоты шлем отсюда
-            const BOT_TOKEN = "7544062025:AAGC-90AAN_84K5T81E6O9068K9Y3u28NCM"; // Токен из твоего старого бота
-            const CHAT_ID = "1430030080";      // Твой Chat ID администратора 
+            const orderData = {
+                name,
+                phone,
+                deliveryType,
+                deliveryTime,
+                targetDate,
+                address,
+                apartment,
+                intercom,
+                entrance,
+                floor,
+                comment,
+                items,
+                total: finalTotal,
+                discount,
+                deliveryCost,
+                appliedPromo: appliedPromo?.code,
+                timestamp: Date.now()
+            };
 
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: orderText,
-                    parse_mode: "HTML"
-                })
+            const response = await fetch('/api/send-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order: orderData, type: 'redirect' })
             });
-        } catch (error) {
-            console.error("Ошибка при отправке в ТГ:", error);
-        }
 
-        setIsSubmitting(false);
-        setStep("success");
-        clearCart();
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Ошибка при оформлении заказа');
+            }
+
+            // Если пришла ссылка на оплату — переходим
+            if (result.paymentUrl) {
+                window.location.href = result.paymentUrl;
+                return;
+            }
+
+            // Если оплата не нужна (или уже обработана)
+            setStep("success");
+            clearCart();
+        } catch (error: any) {
+            console.error("Ошибка при отправке:", error);
+            alert(error.message || "Произошла ошибка при оформлении заказа. Попробуйте снова.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleClose = () => {
