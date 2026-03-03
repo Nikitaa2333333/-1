@@ -381,8 +381,13 @@ export const CheckoutPage = () => {
             setStep("success");
             clearCart();
         } catch (error: any) {
-            console.error("Order submit error:", error);
-            alert("Не удалось создать заказ: " + (error.message || "Неизвестная ошибка"));
+            console.error("Order submit error details:", error);
+            let msg = "Неизвестная ошибка";
+            if (typeof error === 'string') msg = error;
+            else if (error.message) msg = error.message;
+            else msg = JSON.stringify(error);
+
+            alert("Ошибка при создании заказа: " + msg);
             setIsSubmitting(false);
         }
     };

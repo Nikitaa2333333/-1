@@ -69,7 +69,6 @@ export default async function handler(req, res) {
         const returnUrl = `${protocol}://${host}/checkout?success=true`;
 
         // === ЗАЩИТА: ПЕРЕСЧЕТ СУММЫ НА СЕРВЕРЕ (Anti-Fraud) ===
-        // Мы не доверяем total, пришедшему с фронта. Пересчитываем сами.
         let calculatedBaseTotal = 0;
         const serverProducts = productsData.products || [];
 
@@ -77,51 +76,49 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Корзина пуста' });
         }
 
-        order.items.forEach(clientItem => {
-            // Ищем товар в нашей базе по имени (в идеале по ID, но в JSON имена уникальны)
-            const realProduct = serverProducts.find(p => p.name === clientItem.name);
-            if (!realProduct) {
-                throw new Error(`Товар "${clientItem.name}" не найден в базе`);
-            }
-            const price = parseFloat(realProduct.price) || 0;
-            const qty = parseInt(clientItem.quantity) || 1;
-            calculatedBaseTotal += price * qty;
-        });
+        try {
+            order.items.forEach(clientItem => {
+                const realProduct = serverProducts.find(p => p.name === clientItem.name);
+                if (!realProduct) {
+                    throw new Error(`Товар "${clientItem.name}" не найден в базе данных сервера. Пожалуйста, обновите страницу.`);
+                }
+                const price = parseFloat(realProduct.price) || 0;
+                const qty = parseInt(clientItem.quantity) || 1;
+                calculatedBaseTotal += price * qty;
+            });
+        } catch (itemErr) {
+            return res.status(400).json({ error: itemErr.message });
+        }
 
-        // Считаем скидки точно так же, как на фронте
+        // Считаем скидки
         const serverPromo = productsData.promoCodes.find(p => p.code === order.appliedPromo && p.isActive);
         const promoDiscountPct = serverPromo ? serverPromo.discount : 0;
         const promoDiscountAmount = Math.round(calculatedBaseTotal * (promoDiscountPct / 100));
 
         const isPreorder = order.deliveryTime === 'later';
         const preorderDiscountAmount = isPreorder ? Math.round(calculatedBaseTotal * 0.1) : 0;
-
         const totalDiscount = promoDiscountAmount + preorderDiscountAmount;
 
-        // Доставка тоже должна проверяться, но так как она динамическая от Yandex, 
-        // мы берем её как есть, но проверяем финальный итог.
-        const serverFinalTotal = calculatedBaseTotal - totalDiscount + (parseFloat(order.deliveryCost) || 0);
+        // Доставка берется как пришла, но мы проверяем логику
+        const clientDeliveryCost = parseFloat(order.deliveryCost) || 0;
+        const serverFinalTotal = calculatedBaseTotal - totalDiscount + clientDeliveryCost;
 
-        console.log('[Security] Server check:', {
-            clientTotal: order.total,
+        console.log('[Security] Price Check:', {
+            clientSent: order.total,
             serverCalculated: serverFinalTotal,
-            base: calculatedBaseTotal,
-            discount: totalDiscount
+            diff: Math.abs(order.total - serverFinalTotal)
         });
 
-        // Если разница более 1 рубля (на случай округлений) — это попытка взлома
-        if (Math.abs(order.total - serverFinalTotal) > 1) {
-            console.error('[Security ALERT] Price mismatch! Potential fraud.');
-            return res.status(403).json({ error: 'Ошибка безопасности: цена заказа не совпадает с актуальной. Пожалуйста, обновите страницу.' });
+        // ПРОВЕРКА ЦЕНЫ (разрешаем погрешность в 5 рублей на случай округлений)
+        if (Math.abs(order.total - serverFinalTotal) > 5) {
+            return res.status(403).json({
+                error: `Ошибка безопасности: сервер насчитал ${serverFinalTotal} р., а браузер прислал ${order.total} р. Попробуйте обновить корзину.`
+            });
         }
 
-        if (serverFinalTotal <= 0) {
-            return res.status(400).json({ error: 'Некорректная сумма заказа' });
-        }
-
-        const totalAmount = serverFinalTotal; // Используем наше расчетное значение
-        const deliveryCost = parseFloat(order.deliveryCost) || 0;
-        const discount = totalDiscount; // Используем наше расчетное значение
+        const totalAmount = serverFinalTotal;
+        const deliveryCost = clientDeliveryCost;
+        const discount = totalDiscount;
 
         // === ПОДГОТОВКА ПОЗИЦИЙ ЧЕКА (54-ФЗ) ===
         const paymentItems = [];
