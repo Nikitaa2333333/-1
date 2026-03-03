@@ -1,21 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { MapPin, Phone, User, Tag, Package, Bike, ChevronLeft, CheckCircle2, Loader2, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapPin, Phone, User, Tag, Package, Bike, ChevronLeft, CheckCircle2, Loader2, X, Clock, ChevronDown } from "lucide-react";
 import { useCart } from "../context/CartContext";
 
-const PROMO_CODES: Record<string, number> = {
-    "LETO2025": 10,
-    "APELSINKA": 15,
-    "SALE10": 10,
-};
+
 
 const STORE_COORDS = [55.746644, 37.565883];
 const inputClass = "w-full pl-10 pr-4 py-4 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-base focus:outline-none focus:border-brand-hot focus:bg-white transition-colors";
 
 export const CheckoutPage = () => {
     const navigate = useNavigate();
-    const { items, totalPrice, clearCart } = useCart();
+    const { items, totalPrice, clearCart, appliedPromo, applyPromo: applyPromoGlobal, removePromo } = useCart();
 
     const [step, setStep] = useState<"form" | "success">("form");
     const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
@@ -27,7 +23,6 @@ export const CheckoutPage = () => {
     const [entrance, setEntrance] = useState("");
     const [floor, setFloor] = useState("");
     const [promo, setPromo] = useState("");
-    const [promoApplied, setPromoApplied] = useState<number | null>(null);
     const [promoError, setPromoError] = useState("");
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +32,9 @@ export const CheckoutPage = () => {
     const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null);
     const [isCalculating, setIsCalculating] = useState(false);
     const [manualDeliveryCost, setManualDeliveryCost] = useState<number | null>(null);
+    const [deliveryTime, setDeliveryTime] = useState<"today" | "later">("today");
+    const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
+    const [targetDate, setTargetDate] = useState("");
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<any>(null);
     const isWidgetRendered = useRef(false);
@@ -148,18 +146,19 @@ export const CheckoutPage = () => {
     }, []);
 
     const deliveryCost = deliveryType === "pickup" ? 0 : (manualDeliveryCost || 0);
-    const discount = promoApplied ? Math.round(totalPrice * promoApplied / 100) : 0;
+    const promoDiscount = appliedPromo ? Math.round(totalPrice * appliedPromo.discount / 100) : 0;
+    const futureDiscount = deliveryTime === "later" ? Math.round(totalPrice * 0.1) : 0;
+    const discount = promoDiscount + futureDiscount;
     const finalTotal = totalPrice - discount + deliveryCost;
-    const isFormValid = name.trim() && phone.trim().length >= 6 && (deliveryType === "pickup" || (address.trim() && !isCalculating));
+    const isFormValid = name.trim() && phone.trim().length >= 6 && (deliveryType === "pickup" || (address.trim() && !isCalculating)) && (deliveryTime === "today" || targetDate.trim());
 
-    const applyPromo = () => {
-        const code = promo.trim().toUpperCase();
-        if (PROMO_CODES[code]) {
-            setPromoApplied(PROMO_CODES[code]);
+    const handleApplyPromo = () => {
+        if (!promo.trim()) return;
+        const result = applyPromoGlobal(promo);
+        if (result.success) {
             setPromoError("");
         } else {
-            setPromoApplied(null);
-            setPromoError("Промокод не найден");
+            setPromoError(result.message);
         }
     };
 
@@ -280,7 +279,10 @@ export const CheckoutPage = () => {
             total: Number(finalTotal),
             deliveryCost: Number(deliveryCost),
             discount: Number(discount),
+            appliedPromo: appliedPromo ? String(appliedPromo.code) : null,
             deliveryType: String(deliveryType),
+            deliveryTime: String(deliveryTime),
+            targetDate: String(targetDate).trim(),
             name: String(name).trim(),
             phone: String(phone).trim(),
             address: String(address).trim(),
@@ -374,7 +376,7 @@ export const CheckoutPage = () => {
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                             <h2 className="font-dela text-base text-brand-dark mb-3">Способ получения</h2>
-                            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl">
+                            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-3">
                                 <button onClick={() => setDeliveryType("delivery")} className={`flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all min-h-[48px] ${deliveryType === "delivery" ? "bg-white text-brand-dark shadow-md" : "text-gray-400"}`}>
                                     <Bike className="w-4 h-4 shrink-0" /> Доставка
                                 </button>
@@ -382,6 +384,69 @@ export const CheckoutPage = () => {
                                     <Package className="w-4 h-4 shrink-0" /> Самовывоз
                                 </button>
                             </div>
+
+                            <h2 className="font-dela text-base text-brand-dark mb-3 mt-4">Время {deliveryType === "delivery" ? "доставки" : "самовывоза"}</h2>
+                            <div className="relative z-40">
+                                <button
+                                    onClick={(e) => { e.preventDefault(); setIsTimeDropdownOpen(!isTimeDropdownOpen); }}
+                                    className="w-full flex items-center justify-between p-4 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-brand-dark font-bold text-sm focus:outline-none focus:border-brand-hot transition-all"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-5 h-5 text-brand-hot" />
+                                        <span>{deliveryTime === "today" ? "Сегодня (~60–90 мин)" : "На другой день (-10%)"}</span>
+                                    </div>
+                                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isTimeDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                <AnimatePresence>
+                                    {isTimeDropdownOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="absolute w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                                        >
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); setDeliveryTime("today"); setIsTimeDropdownOpen(false); }}
+                                                className={`w-full flex items-center justify-between px-4 py-4 text-sm font-bold transition-colors ${deliveryTime === "today" ? 'bg-brand-pink/10 text-brand-dark' : 'text-gray-500 hover:bg-gray-50'}`}
+                                            >
+                                                <span>Сегодня (~60–90 мин)</span>
+                                                {deliveryTime === "today" && <CheckCircle2 className="w-5 h-5 text-brand-dark" />}
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); setDeliveryTime("later"); setIsTimeDropdownOpen(false); }}
+                                                className={`w-full flex items-center justify-between px-4 py-4 text-sm font-bold transition-colors border-t border-gray-100 ${deliveryTime === "later" ? 'bg-brand-pink/10 text-brand-dark' : 'text-gray-500 hover:bg-gray-50'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span>На другой день</span>
+                                                    <span className="text-[10px] text-white bg-brand-hot px-1.5 py-0.5 rounded-full">-10%</span>
+                                                </div>
+                                                {deliveryTime === "later" && <CheckCircle2 className="w-5 h-5 text-brand-dark" />}
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            <AnimatePresence>
+                                {deliveryTime === "later" && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="overflow-hidden mt-3"
+                                    >
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-gray-400 font-bold ml-1">Укажите дату и время</label>
+                                            <input
+                                                type="datetime-local"
+                                                value={targetDate}
+                                                onChange={(e) => setTargetDate(e.target.value)}
+                                                className={inputClass}
+                                            />
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
@@ -461,11 +526,20 @@ export const CheckoutPage = () => {
                         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                             <h2 className="font-dela text-base text-brand-dark mb-3">Промокод</h2>
                             <div className="flex gap-2">
-                                <div className="relative flex-grow"><Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" /><input type="text" placeholder="Введите промокод" value={promo} onChange={e => { setPromo(e.target.value); setPromoApplied(null); setPromoError(""); }} className={inputClass} /></div>
-                                <button onClick={applyPromo} className="px-5 bg-brand-dark text-white rounded-xl font-bold text-sm hover:bg-brand-hot transition-colors min-h-[48px] shrink-0">OK</button>
+                                <div className="relative flex-grow"><Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" /><input type="text" placeholder="Введите промокод" value={promo} onChange={e => { setPromo(e.target.value); setPromoError(""); }} className={inputClass} /></div>
+                                <button onClick={handleApplyPromo} className="px-5 bg-brand-dark text-white rounded-xl font-bold text-sm hover:bg-brand-hot transition-colors min-h-[48px] shrink-0">OK</button>
                             </div>
-                            {promoApplied && <p className="text-green-600 text-xs font-bold mt-2 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Скидка {promoApplied}% применена</p>}
-                            {promoError && <p className="text-red-500 text-xs mt-2">{promoError}</p>}
+                            {appliedPromo && (
+                                <div className="mt-3 flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                                    <p className="text-green-600 text-xs font-bold flex items-center gap-1">
+                                        <CheckCircle2 className="w-4 h-4" /> Скидка {appliedPromo.discount}% ({appliedPromo.code})
+                                    </p>
+                                    <button onClick={removePromo} className="text-green-600 hover:text-red-500">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                            {promoError && <p className="text-red-500 text-xs mt-2 italic">{promoError}</p>}
                         </div>
 
                         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
@@ -473,7 +547,8 @@ export const CheckoutPage = () => {
                             <div className="space-y-2">{items.map(item => (<div key={item.id} className="flex justify-between text-sm text-gray-500"><span className="truncate mr-2">{item.name} × {item.quantity}</span><span className="shrink-0 font-bold text-brand-dark">{item.price * item.quantity} ₽</span></div>))}</div>
                             <div className="border-t border-gray-100 mt-3 pt-3 space-y-1">
                                 {deliveryType === "delivery" && (<div className="flex justify-between text-sm text-gray-400"><span>Доставка {calculatedDistance ? `(${calculatedDistance} км)` : ""}</span><span className="text-right font-bold text-brand-dark">{manualDeliveryCost ? `${manualDeliveryCost} ₽` : "Расчет..."}</span></div>)}
-                                {promoApplied && (<div className="flex justify-between text-sm text-green-600"><span>Скидка {promoApplied}%</span><span>−{discount} ₽</span></div>)}
+                                {appliedPromo && (<div className="flex justify-between text-sm text-green-600"><span>Промокод {appliedPromo.code} (-{appliedPromo.discount}%)</span><span>−{promoDiscount} ₽</span></div>)}
+                                {deliveryTime === "later" && (<div className="flex justify-between text-sm text-brand-hot font-bold"><span>Скидка за предзаказ 10%</span><span>−{futureDiscount} ₽</span></div>)}
                                 <div className="flex justify-between font-dela text-xl text-brand-dark pt-1"><span>Итого</span><span>{finalTotal} ₽</span></div>
                             </div>
                         </div>

@@ -108,7 +108,8 @@ export default async function handler(req, res) {
         const totalText = [
             '─────────────────────',
             `💰 <b>ОПЛАЧЕНО: ${paymentObj.amount?.value} ₽</b>`,
-            order.discount > 0 ? `🏷 Скидка: ${order.discount} ₽` : '',
+            order.appliedPromo ? `🏷 Промокод: ${order.appliedPromo}` : '',
+            order.discount > 0 ? `🎁 Общая скидка: ${order.discount} ₽` : '',
             `🚚 Доставка: ${order.deliveryCost || 0} ₽`,
             '─────────────────────',
         ].filter(Boolean).join('\n');
@@ -127,6 +128,7 @@ export default async function handler(req, res) {
             `Имя: ${order.name || '—'}`,
             `Телефон: ${order.phone || '—'}`,
             `Тип: ${order.deliveryType === 'delivery' ? '🚚 Доставка' : '🏪 Самовывоз'}`,
+            `Время: ${order.deliveryTime === 'later' ? `На другой день (${order.targetDate || '?'}) [-10%]` : 'Сегодня'}`,
             addressLines,
         ].filter(Boolean).join('\n');
 
