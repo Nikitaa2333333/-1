@@ -1,3 +1,16 @@
+/**
+ * POST /api/send-order
+ *
+ * Создаёт платёж в ЮKassa (API v3).
+ *
+ * ИСПРАВЛЕНИЯ (на основе логов ЮKassa):
+ * 1. amount.value → строго "500.00" (toFixed(2)), не "500"
+ * 2. receipt.customer.phone → "79001234567" БЕЗ знака + (E.164 без +)
+ *    Ошибка в логах: "parameter": "receipt.customer.phone"
+ * 3. quantity → число 1.000, не строка "1.000"
+ * 4. Сумма позиций чека = сумме платежа (копейка в копейку)
+ */
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -10,7 +23,6 @@ export default async function handler(req, res) {
         YOOKASSA_SECRET_KEY,
     } = process.env;
 
-    // Проверяем наличие боевых ключей
     if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) {
         return res.status(500).json({ error: 'ОШИБКА: Боевые ключи ЮKassa не настроены' });
     }
@@ -20,11 +32,7 @@ export default async function handler(req, res) {
     }
 
     const order = req.body;
-    console.log('[API] New order request:', {
-        name: order.name,
-        total: order.total,
-        type: order.type
-    });
+    console.log('[API] New order:', { name: order.name, total: order.total, type: order.type });
 
     try {
         const idempotenceKey = Date.now().toString() + Math.random().toString(36).substring(7);
@@ -35,96 +43,140 @@ export default async function handler(req, res) {
         const protocol = req.headers['x-forwarded-proto'] || 'https';
         const returnUrl = `${protocol}://${host}/checkout?success=true`;
 
-        // === ПОДГОТОВКА ЧЕКА ПО ФЗ-54 ===
+        // === СУММЫ ===
+        const totalAmount = parseFloat(order.total) || 0;
+        const deliveryCost = parseFloat(order.deliveryCost) || 0;
+        const discount = parseFloat(order.discount) || 0;
+
+        if (totalAmount <= 0) {
+            return res.status(400).json({ error: 'Некорректная сумма заказа' });
+        }
+
+        // === ПОДГОТОВКА ПОЗИЦИЙ ЧЕКА (54-ФЗ) ===
         const paymentItems = [];
-        let cartItemsTotalAfterDiscount = order.total - order.deliveryCost;
+        const cartItemsTotal = totalAmount - deliveryCost; // товары без доставки
         let currentItemsSum = 0;
 
-        // Разворачиваем товары по 1 штуке, чтобы избежать любых проблем с округлением цены
+        // Разворачиваем qty > 1 в отдельные позиции (безопаснее для округления)
         const allIndividualItems = [];
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
-                const qty = Number(item.quantity) || 1;
+                const qty = Math.max(1, parseInt(item.quantity) || 1);
                 for (let i = 0; i < qty; i++) {
                     allIndividualItems.push({ ...item, quantity: 1 });
                 }
             });
         }
 
-        // Распределяем скидку пропорционально на каждый товар
-        const baseCartSum = allIndividualItems.reduce((sum, item) => sum + Number(item.price), 0);
+        const baseCartSum = allIndividualItems.reduce((s, i) => s + (parseFloat(i.price) || 0), 0);
 
         allIndividualItems.forEach((item, index) => {
             const isLast = index === allIndividualItems.length - 1;
-            const ratio = baseCartSum > 0 ? (Number(item.price) / baseCartSum) : 0;
+            const itemPrice = parseFloat(item.price) || 0;
+            const ratio = baseCartSum > 0 ? (itemPrice / baseCartSum) : 0;
 
-            // Вычисляем цену единицы товара со скидкой
-            let finalPrice = Number(item.price) - (Number(order.discount || 0) * ratio);
-            finalPrice = Math.round(finalPrice * 100) / 100; // Округляем до копеек
-
-            // Последний товар "вбирает" погрешность округлений, чтобы сумма сошлась копейка-в-копейку
+            let finalPrice;
             if (isLast) {
-                finalPrice = cartItemsTotalAfterDiscount - currentItemsSum;
-                finalPrice = Math.round(finalPrice * 100) / 100;
+                // последний товар закрывает погрешность округления
+                finalPrice = Math.round((cartItemsTotal - currentItemsSum) * 100) / 100;
+            } else {
+                finalPrice = Math.round((itemPrice - discount * ratio) * 100) / 100;
             }
+            if (finalPrice < 0.01) finalPrice = 0.01;
 
-            currentItemsSum += finalPrice;
+            currentItemsSum = Math.round((currentItemsSum + finalPrice) * 100) / 100;
 
-            // YooKassa требует точного соответствия суммы, передаем quantity: '1.000'
             paymentItems.push({
-                description: item.name ? item.name.substring(0, 128) : 'Товар',
-                quantity: '1.000',
+                description: item.name ? String(item.name).substring(0, 128) : 'Товар',
+                quantity: 1.000,                    // ЧИСЛО, не строка
                 amount: {
-                    value: finalPrice.toFixed(2),
+                    value: finalPrice.toFixed(2),   // всегда "X.XX"
                     currency: 'RUB'
                 },
-                vat_code: 1, // Без НДС, измените на нужный код (например 1 для ИП без НДС)
+                vat_code: 1,                        // 1 = без НДС
                 payment_mode: 'full_prepayment',
                 payment_subject: 'commodity'
             });
         });
 
-        // Доставка идет отдельной услугой в чеке
-        if (Number(order.deliveryCost) > 0) {
+        // Доставка как отдельная позиция
+        if (deliveryCost > 0) {
             paymentItems.push({
                 description: 'Доставка',
-                quantity: '1.000',
+                quantity: 1.000,
                 amount: {
-                    value: Number(order.deliveryCost).toFixed(2),
+                    value: deliveryCost.toFixed(2),
                     currency: 'RUB'
                 },
                 vat_code: 1,
                 payment_mode: 'full_prepayment',
-                payment_subject: 'service' // Услуга
+                payment_subject: 'service'
             });
         }
 
-        const phoneForReceipt = order.phone ? order.phone.replace(/[^0-9+]/g, '') : '';
+        // =====================================================
+        // КРИТИЧНО: receipt.customer.phone
+        // ЮKassa (E.164) требует ТОЛЬКО ЦИФРЫ без знака +:
+        //   "79001234567" ✅
+        //   "+79001234567" ❌ — именно это вызывало ошибку в логах!
+        // =====================================================
+        const digitsOnly = String(order.phone || '').replace(/[^0-9]/g, '');
+        let phoneForReceipt;
+
+        if (digitsOnly.startsWith('8') && digitsOnly.length === 11) {
+            // 89991234567 → 79991234567
+            phoneForReceipt = '7' + digitsOnly.substring(1);
+        } else if (digitsOnly.startsWith('7') && digitsOnly.length === 11) {
+            // 79991234567 — уже правильный формат
+            phoneForReceipt = digitsOnly;
+        } else if (digitsOnly.length === 10) {
+            // 9991234567 → 79991234567
+            phoneForReceipt = '7' + digitsOnly;
+        } else {
+            phoneForReceipt = digitsOnly;
+        }
+
+        console.log('[API] Phone normalized:', order.phone, '→', phoneForReceipt);
+
+        // === ПРОВЕРКА: сумма позиций = итогу ===
+        const receiptTotal = paymentItems.reduce((s, i) =>
+            Math.round((s + parseFloat(i.amount.value)) * 100) / 100, 0);
+
+        if (Math.abs(receiptTotal - totalAmount) > 0.01) {
+            console.error('[API] Sum mismatch! receipt:', receiptTotal, 'payment:', totalAmount);
+            return res.status(500).json({
+                error: `Ошибка чека: сумма позиций ${receiptTotal} ≠ итогу ${totalAmount}`
+            });
+        }
 
         const paymentData = {
             amount: {
-                value: String(order.total),
+                value: totalAmount.toFixed(2),  // "500.00" — СТРОГО 2 знака
                 currency: 'RUB'
             },
             confirmation: type === 'redirect'
                 ? { type: 'redirect', return_url: returnUrl }
                 : { type: 'embedded' },
             capture: true,
-            description: `Заказ: ${order.name} (${order.phone})`,
+            description: `Заказ: ${order.name || 'покупатель'} (${order.phone || ''})`.substring(0, 128),
             metadata: {
-                // Передаем весь заказ в метадату, чтобы бот смог отправить в телегу после оплаты
                 orderData: JSON.stringify(order)
             },
-            // Объект чека в соответствии с 54-ФЗ
             receipt: {
                 customer: {
-                    phone: phoneForReceipt
+                    phone: phoneForReceipt  // "79001234567" — БЕЗ ПЛЮСА
                 },
                 items: paymentItems
             }
         };
 
-        console.log(`[API] Creating YooKassa payment (${type}) with receipt...`);
+        console.log('[API] Sending to YooKassa:', {
+            amount: paymentData.amount.value,
+            phone: phoneForReceipt,
+            itemsCount: paymentItems.length,
+            receiptTotal
+        });
+
         const response = await fetch('https://api.yookassa.ru/v3/payments', {
             method: 'POST',
             headers: {
@@ -138,17 +190,22 @@ export default async function handler(req, res) {
         const payment = await response.json();
 
         if (!response.ok) {
-            console.error('[API] YooKassa Error Response:', payment);
-            let errorMessage = payment.description;
+            console.error('[API] YooKassa Error:', JSON.stringify(payment, null, 2));
+            let errorMessage = payment.description || 'Ошибка ЮKassa';
+            if (payment.parameter) {
+                errorMessage += ` [поле: ${payment.parameter}]`;
+            }
             if (payment.parameters && payment.parameters.length) {
-                errorMessage += ` (${payment.parameters.map(p => p.name).join(', ')})`;
+                errorMessage += ` (параметры: ${payment.parameters.map(p => p.name).join(', ')})`;
             }
             return res.status(response.status).json({
-                error: errorMessage || 'Ошибка ЮKassa: ' + (payment.code || 'unknown')
+                error: errorMessage,
+                code: payment.code,
+                yookassaResponse: payment
             });
         }
 
-        console.log('[API] YooKassa Payment Created:', payment.id);
+        console.log('[API] Payment created:', payment.id, '| status:', payment.status);
 
         return res.status(200).json({
             success: true,
