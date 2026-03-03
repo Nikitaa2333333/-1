@@ -4,6 +4,7 @@ import { PromoBanner } from "@/components/PromoBanner";
 import { ScrollSequence } from "@/components/ScrollSequence";
 import { Manifesto } from "@/components/Manifesto";
 import { Features } from "@/components/Features";
+import { Reviews } from "@/components/Reviews";
 import { Footer } from "@/components/Footer";
 import { Marquee } from "@/components/Marquee";
 import { OrderCTA } from "@/components/OrderCTA";
@@ -21,6 +22,7 @@ function HomePage() {
       <Marquee />
       <Manifesto />
       <Features />
+      <Reviews />
       <PromoBanner />
       <Suspense fallback={<div className="py-24 bg-brand-pink/10" />}>
         <ProductGrid />

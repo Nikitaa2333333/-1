@@ -1,24 +1,17 @@
-import { Award, Gift, Coffee } from "lucide-react";
+import { Award, Gift, Coffee, Star, Heart, CheckCircle } from "lucide-react";
+import data from "../data/products.json";
 
-const features = [
-  {
-    icon: <Award className="w-12 h-12 text-brand-hot" />,
-    title: "Бельгийский шоколад",
-    description: "Мы используем только лучший бельгийский шоколад Callebaut, чтобы каждый глоток был наслаждением."
-  },
-  {
-    icon: <Coffee className="w-12 h-12 text-brand-hot" />,
-    title: "Стильная подача",
-    description: "В стильном стакане — удобно взять с собой или подарить в моменте."
-  },
-  {
-    icon: <Gift className="w-12 h-12 text-brand-hot" />,
-    title: "Идеальный подарок",
-    description: "Не просто десерт, а настоящее признание в чувствах. Для любимого человека."
-  }
-];
+const iconMap: Record<string, React.ReactNode> = {
+  award: <Award className="w-12 h-12 text-brand-hot" />,
+  coffee: <Coffee className="w-12 h-12 text-brand-hot" />,
+  gift: <Gift className="w-12 h-12 text-brand-hot" />,
+  star: <Star className="w-12 h-12 text-brand-hot" />,
+  heart: <Heart className="w-12 h-12 text-brand-hot" />,
+  check: <CheckCircle className="w-12 h-12 text-brand-hot" />
+};
 
 export const Features = () => {
+  const features = data.features || [];
   return (
     <section id="features" className="pt-24 pb-12 bg-brand-cream relative">
       <div className="container mx-auto">
@@ -32,7 +25,7 @@ export const Features = () => {
                 <div className="bg-brand-pink/10 p-4 md:p-6 rounded-full">
                   {/* Контейнер иконки — уменьшаем на мобильных */}
                   <div className="scale-75 md:scale-100">
-                    {feature.icon}
+                    {iconMap[feature.icon] || <Star className="w-12 h-12 text-brand-hot" />}
                   </div>
                 </div>
               </div>

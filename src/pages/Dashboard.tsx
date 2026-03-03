@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, ShoppingBag, Type, TicketPercent,
     Image as ImageIcon, Save, Plus, Trash2,
-    ChevronRight, Sparkles, Upload,
-    Undo2, Redo2
+    ChevronRight, ChevronLeft, Sparkles, Upload,
+    Undo2, Redo2, Star, Gift, Coffee, Award, Heart, CheckCircle
 } from 'lucide-react';
 import data from '../data/products.json';
 
@@ -380,6 +380,25 @@ export const Dashboard = () => {
         }
     }, [activeCategoryFilter, pushHistory]);
 
+    const moveCategory = useCallback((index: number, direction: 'left' | 'right') => {
+        setFormData(prev => {
+            const newCategories = [...(prev.categories || [])];
+            if (direction === 'left' && index > 1) { // 0 - "All", shouldn't move before All or swap with All
+                const temp = newCategories[index - 1];
+                newCategories[index - 1] = newCategories[index];
+                newCategories[index] = temp;
+            } else if (direction === 'right' && index < newCategories.length - 1 && index > 0) {
+                const temp = newCategories[index + 1];
+                newCategories[index + 1] = newCategories[index];
+                newCategories[index] = temp;
+            } else return prev;
+
+            const nextData = { ...prev, categories: newCategories };
+            pushHistory(nextData);
+            return nextData;
+        });
+    }, [pushHistory]);
+
     const addProduct = useCallback(() => {
         const newProduct = {
             id: Date.now(),
@@ -490,15 +509,23 @@ export const Dashboard = () => {
                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-brand-dark text-white p-6 rounded-[2rem] gap-4">
                                     <h3 className="font-dela text-2xl">Ваше меню</h3>
                                     <div className="flex flex-wrap gap-2 items-center flex-grow">
-                                        {(formData.categories || EMPTY_ARRAY).map((cat: any) => (
+                                        {(formData.categories || EMPTY_ARRAY).map((cat: any, index: number) => (
                                             <div key={cat.id} className="relative group/cat">
                                                 <button onClick={() => setActiveCategoryFilter(cat.id)} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeCategoryFilter === cat.id ? 'bg-brand-hot text-white shadow-lg' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
                                                     {cat.name}
                                                 </button>
                                                 {cat.id !== 'all' && activeCategoryFilter === cat.id && (
-                                                    <button onClick={() => removeCategory(cat.id)} className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center hover:bg-red-600 opacity-0 group-hover/cat:opacity-100 transition-opacity shadow-sm z-10" title="Удалить раздел">
-                                                        <Trash2 className="w-3 h-3" />
-                                                    </button>
+                                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center bg-white rounded-full shadow-lg overflow-hidden border border-brand-pink/20 z-20 opacity-0 group-hover/cat:opacity-100 transition-opacity">
+                                                        <button onClick={() => moveCategory(index, 'left')} className="p-1 hover:bg-gray-100 text-brand-dark/50 hover:text-brand-hot transition-colors" title="Влево">
+                                                            <ChevronLeft className="w-3 h-3" />
+                                                        </button>
+                                                        <button onClick={() => removeCategory(cat.id)} className="p-1 text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors" title="Удалить раздел">
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                        <button onClick={() => moveCategory(index, 'right')} className="p-1 hover:bg-gray-100 text-brand-dark/50 hover:text-brand-hot transition-colors" title="Вправо">
+                                                            <ChevronRight className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         ))}
@@ -570,6 +597,44 @@ export const Dashboard = () => {
                                             <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">История</label>
                                             <DebouncedTextarea value={formData.manifesto.history} onChange={(val: string) => updateField('manifesto.history', val)} className="w-full bg-white border-2 border-brand-pink/10 rounded-3xl p-6 font-sans text-lg h-48" />
                                             <InputField label="Миссия" value={formData.manifesto.mission} onChange={(val: string) => updateField('manifesto.mission', val)} />
+                                        </div>
+                                    </GlassCard>
+                                )}
+
+                                {formData.features && (
+                                    <GlassCard title="Плашки преимуществ">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {formData.features.map((feature: any, idx: number) => (
+                                                <div key={idx} className="bg-brand-pink/5 p-6 rounded-[2rem] space-y-4 border border-brand-pink/10">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-brand-hot shadow-sm">
+                                                            {feature.icon === 'award' && <Award className="w-5 h-5" />}
+                                                            {feature.icon === 'coffee' && <Coffee className="w-5 h-5" />}
+                                                            {feature.icon === 'gift' && <Gift className="w-5 h-5" />}
+                                                            {feature.icon === 'star' && <Star className="w-5 h-5" />}
+                                                            {feature.icon === 'heart' && <Heart className="w-5 h-5" />}
+                                                            {feature.icon === 'check' && <CheckCircle className="w-5 h-5" />}
+                                                        </div>
+                                                        <select
+                                                            value={feature.icon}
+                                                            onChange={(e) => updateField(`features.${idx}.icon`, e.target.value)}
+                                                            className="bg-white border border-brand-pink/10 rounded-lg px-2 py-1 text-xs font-bold text-brand-dark outline-none cursor-pointer flex-grow"
+                                                        >
+                                                            <option value="award">Награда</option>
+                                                            <option value="coffee">Крышка/Стакан</option>
+                                                            <option value="gift">Подарок</option>
+                                                            <option value="star">Звезда</option>
+                                                            <option value="heart">Сердце</option>
+                                                            <option value="check">Галочка</option>
+                                                        </select>
+                                                    </div>
+                                                    <InputField label="Заголовок" value={feature.title} onChange={(val: string) => updateField(`features.${idx}.title`, val)} />
+                                                    <div className="space-y-1 mt-2">
+                                                        <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">Описание</label>
+                                                        <DebouncedTextarea value={feature.description} onChange={(val: string) => updateField(`features.${idx}.description`, val)} className="w-full bg-white border-2 border-brand-pink/10 rounded-2xl p-4 font-medium text-sm text-brand-dark h-24" />
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </GlassCard>
                                 )}
