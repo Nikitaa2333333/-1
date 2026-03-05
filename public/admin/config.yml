@@ -81,3 +81,13 @@ collections:
                 required: false
                 field: { label: "Фото", name: "image", widget: "image" }
               - { label: "ОПИСАНИЕ (Текст на странице товара)", name: "desc", widget: "text", required: false }
+
+          - label: "ОТЗЫВЫ (Только редактирование существующих)"
+            name: "reviews"
+            widget: "list"
+            fields:
+              - { label: "ID (не менять)", name: "id", widget: "number" }
+              - { label: "Имя клиента", name: "name", widget: "string" }
+              - { label: "Дата", name: "date", widget: "string" }
+              - { label: "Оценка (от 1 до 5)", name: "rating", widget: "number" }
+              - { label: "Текст отзыва", name: "text", widget: "text" }

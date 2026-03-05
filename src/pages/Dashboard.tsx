@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import data from '../data/products.json';
 
-type Section = 'general' | 'menu' | 'promos' | 'about' | 'coupons';
+type Section = 'general' | 'menu' | 'promos' | 'about' | 'coupons' | 'reviews';
 
 const EMPTY_ARRAY: any[] = [];
 
@@ -168,7 +168,7 @@ const ProductRow = memo(({ product, categories, onUpdate, onDelete }: any) => {
                             <div className="relative flex items-center">
                                 <DebouncedInput
                                     value={product.price?.replace(/\D/g, '') || ''}
-                                    onChange={(val: string) => onUpdate(product.id, { ...product, price: val })}
+                                    onChange={(val: string) => onUpdate(product.id, { ...product, price: val.replace(/\D/g, '') })}
                                     className="w-full bg-transparent border-b-2 border-brand-pink/20 py-1 font-bold text-lg outline-none focus:border-brand-hot transition-colors pr-6"
                                     placeholder="0"
                                 />
@@ -193,7 +193,7 @@ const ProductRow = memo(({ product, categories, onUpdate, onDelete }: any) => {
                                 <div className="relative flex items-center mt-1">
                                     <DebouncedInput
                                         value={product.oldPrice?.replace(/\D/g, '') || ''}
-                                        onChange={(val: string) => onUpdate(product.id, { ...product, oldPrice: val })}
+                                        onChange={(val: string) => onUpdate(product.id, { ...product, oldPrice: val.replace(/\D/g, '') })}
                                         className="w-full bg-transparent border-b-2 border-brand-pink/20 py-1 font-bold text-sm text-gray-400 line-through outline-none focus:border-brand-hot transition-colors pr-6"
                                         placeholder="0"
                                     />
@@ -514,6 +514,7 @@ export const Dashboard = () => {
                     <TabButton id="promos" icon={TicketPercent} label="Предзаказ и Баннеры" active={activeTab} set={setActiveTab} />
                     <TabButton id="coupons" icon={Sparkles} label="Промокоды" active={activeTab} set={setActiveTab} />
                     <TabButton id="about" icon={ImageIcon} label="Тексты (О нас)" active={activeTab} set={setActiveTab} />
+                    <TabButton id="reviews" icon={Star} label="Отзывы" active={activeTab} set={setActiveTab} />
                 </nav>
             </aside>
 
@@ -769,12 +770,88 @@ export const Dashboard = () => {
                                 </div>
                             </div>
                         )}
+                        {activeTab === 'reviews' && (
+                            <div className="space-y-8">
+                                <div className="flex justify-between items-center bg-brand-dark text-white p-6 rounded-[2rem]">
+                                    <div>
+                                        <h3 className="font-dela text-2xl">Отзывы</h3>
+                                        <p className="text-white/50 text-sm">Редактируйте существующие отзывы клиентов</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-6">
+                                    {(formData.reviews || []).map((review: any, idx: number) => (
+                                        <div key={review.id} className="bg-white border border-brand-pink/10 p-6 rounded-[2rem] shadow-sm space-y-4 hover:border-brand-hot transition-all">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">Имя клиента</label>
+                                                    <DebouncedInput
+                                                        value={review.name}
+                                                        onChange={(val: string) => {
+                                                            const newReviews = [...(formData.reviews || [])];
+                                                            newReviews[idx] = { ...newReviews[idx], name: val };
+                                                            updateField('reviews', newReviews);
+                                                        }}
+                                                        className="w-full bg-brand-pink/5 border-none rounded-xl px-4 py-2 font-bold text-brand-dark outline-none focus:ring-2 focus:ring-brand-hot mt-1"
+                                                        placeholder="Имя..."
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">Дата</label>
+                                                    <DebouncedInput
+                                                        value={review.date}
+                                                        onChange={(val: string) => {
+                                                            const newReviews = [...(formData.reviews || [])];
+                                                            newReviews[idx] = { ...newReviews[idx], date: val };
+                                                            updateField('reviews', newReviews);
+                                                        }}
+                                                        className="w-full bg-brand-pink/5 border-none rounded-xl px-4 py-2 font-bold text-brand-dark outline-none focus:ring-2 focus:ring-brand-hot mt-1"
+                                                        placeholder="Февраль 2026..."
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">Оценка</label>
+                                                    <div className="flex gap-1 mt-2">
+                                                        {[1, 2, 3, 4, 5].map(star => (
+                                                            <button
+                                                                key={star}
+                                                                onClick={() => {
+                                                                    const newReviews = [...(formData.reviews || [])];
+                                                                    newReviews[idx] = { ...newReviews[idx], rating: star };
+                                                                    updateField('reviews', newReviews);
+                                                                }}
+                                                                className={`text-2xl transition-transform hover:scale-110 ${star <= review.rating ? 'text-yellow-400' : 'text-gray-200'}`}
+                                                            >
+                                                                ★
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black uppercase text-brand-hot tracking-widest pl-2">Текст отзыва</label>
+                                                <DebouncedTextarea
+                                                    value={review.text}
+                                                    onChange={(val: string) => {
+                                                        const newReviews = [...(formData.reviews || [])];
+                                                        newReviews[idx] = { ...newReviews[idx], text: val };
+                                                        updateField('reviews', newReviews);
+                                                    }}
+                                                    className="w-full bg-brand-pink/5 border-none rounded-xl px-4 py-3 font-medium text-brand-dark outline-none focus:ring-2 focus:ring-brand-hot h-24 resize-none mt-1"
+                                                    placeholder="Текст отзыва..."
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 </AnimatePresence>
             </main>
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-brand-pink/20 flex justify-around p-4 pb-safe z-50">
                 <MobileTab id="menu" icon={ShoppingBag} active={activeTab} set={setActiveTab} />
                 <MobileTab id="coupons" icon={Sparkles} active={activeTab} set={setActiveTab} />
+                <MobileTab id="reviews" icon={Star} active={activeTab} set={setActiveTab} />
                 <MobileTab id="general" icon={LayoutDashboard} active={activeTab} set={setActiveTab} />
             </nav>
         </div>

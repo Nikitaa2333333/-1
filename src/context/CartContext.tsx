@@ -19,7 +19,7 @@ interface CartContextType {
     clearCart: () => void;
     totalItems: number;
     totalPrice: number;
-    subtotal?: number;
+    subtotal: number;
     appliedPromo: { code: string; discount: number } | null;
     applyPromo: (code: string) => { success: boolean; message: string };
     removePromo: () => void;
@@ -28,25 +28,45 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [items, setItems] = useState<CartItem[]>([]);
-    const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
-
-    // Load cart from localStorage
-    useEffect(() => {
-        const savedCart = localStorage.getItem('apelsinka_cart');
-        if (savedCart) {
-            try {
-                setItems(JSON.parse(savedCart));
-            } catch (e) {
-                console.error('Failed to parse cart', e);
+    const [items, setItems] = useState<CartItem[]>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('apelsinka_cart');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Failed to parse cart', e);
+                }
             }
         }
-    }, []);
+        return [];
+    });
 
-    // Save cart to localStorage
+    const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('apelsinka_promo');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Failed to parse promo', e);
+                }
+            }
+        }
+        return null;
+    });
+
     useEffect(() => {
         localStorage.setItem('apelsinka_cart', JSON.stringify(items));
     }, [items]);
+
+    useEffect(() => {
+        if (appliedPromo) {
+            localStorage.setItem('apelsinka_promo', JSON.stringify(appliedPromo));
+        } else {
+            localStorage.removeItem('apelsinka_promo');
+        }
+    }, [appliedPromo]);
 
     const addToCart = (product: any) => {
         setItems((prevItems) => {
@@ -116,7 +136,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <CartContext.Provider
             value={{
                 items, addToCart, removeFromCart, updateQuantity, clearCart,
-                totalItems, totalPrice, appliedPromo, applyPromo, removePromo
+                totalItems, totalPrice, subtotal, appliedPromo, applyPromo, removePromo
             }}
         >
             {children}

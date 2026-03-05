@@ -1,65 +1,8 @@
 import { Star } from "lucide-react";
-
-const reviews = [
-    {
-        id: 1,
-        name: "Юленька Ковальски",
-        date: "Февраль 2026",
-        rating: 5,
-        text: "Сюрприз удался. Ягоды свежие. Доставка вовремя. Спасибо.",
-    },
-    {
-        id: 2,
-        name: "Отправитель",
-        date: "Февраль 2026",
-        rating: 5,
-        text: "Приятная атмосфера и вкусный подарок. Спасибо)",
-    },
-    {
-        id: 3,
-        name: "Отправитель",
-        date: "Февраль 2026",
-        rating: 5,
-        text: "Приятная атмосфера, ароматный кофе и быстрая подача. Отличное место для отдыха. Спасибо!",
-    },
-    {
-        id: 4,
-        name: "Дарья",
-        date: "Февраль 2026",
-        rating: 5,
-        text: "Вкусная клубника, спасибо большое! Получатель осталась в восторге.",
-    },
-    {
-        id: 5,
-        name: "Антон",
-        date: "Февраль 2026",
-        rating: 5,
-        text: "Всё супер! Буду заказывать ещё.",
-    },
-    {
-        id: 6,
-        name: "Екатерина",
-        date: "Январь 2026",
-        rating: 4,
-        text: "Очень вкусный шоколад! Ягодки крупные и сочные. Обязательно вернусь.",
-    },
-    {
-        id: 7,
-        name: "Мария",
-        date: "Январь 2026",
-        rating: 5,
-        text: "Заказывала в подарок маме, она в полном восторге! Оформление на высоте 🍓",
-    },
-    {
-        id: 8,
-        name: "Алексей",
-        date: "Январь 2026",
-        rating: 5,
-        text: "Доставили точно ко времени. Девушке очень понравилось, съели за вечер.",
-    }
-];
+import data from "../data/products.json";
 
 export const Reviews = () => {
+    const reviews = data.reviews || [];
     return (
         <section id="reviews" className="py-24 bg-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-pink/20 rounded-full blur-[100px] -mr-40 -mt-40 pointer-events-none" />

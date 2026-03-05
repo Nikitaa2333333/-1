@@ -410,6 +410,28 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                                     )}
                                 </button>
 
+                                {/* Support Contact Block */}
+                                <div className="mt-6 bg-brand-pink/5 border border-brand-pink/20 rounded-2xl p-4 flex flex-col items-center text-center gap-2 shadow-sm">
+                                    <p className="font-sans text-brand-dark/60 text-xs font-bold">Не получается заказать или есть вопросы?</p>
+                                    <a
+                                        href="tel:+79017293919"
+                                        className="font-dela text-xl text-brand-dark hover:text-brand-hot transition-colors flex items-center gap-2"
+                                    >
+                                        <Phone className="w-5 h-5 text-brand-hot" /> +7 (901) 729-39-19
+                                    </a>
+                                    <a
+                                        href="https://t.me/apelsinka_bar"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="mt-2 px-6 py-3 bg-[#2AABEE] text-white rounded-xl font-bold font-sans text-sm flex items-center justify-center gap-2 hover:bg-[#229ED9] transition-all shadow-[0_4px_10px_rgba(42,171,238,0.2)] w-fit"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12 12-5.373 12-12S18.628 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.658-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z" />
+                                        </svg>
+                                        Написать в Telegram
+                                    </a>
+                                </div>
+
                                 <div className="pt-4 mt-2 border-t border-brand-pink/10 text-center">
                                     <p className="text-[10px] text-brand-dark/40 leading-relaxed font-sans">
                                         ИП Горбачева Гахара Муриковна<br />

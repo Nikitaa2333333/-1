@@ -11,7 +11,7 @@ const inputClass = "w-full pl-10 pr-4 py-4 rounded-xl border border-brand-pink/2
 
 export const CheckoutPage = () => {
     const navigate = useNavigate();
-    const { items, totalPrice, clearCart, appliedPromo, applyPromo: applyPromoGlobal, removePromo } = useCart();
+    const { items, subtotal, clearCart, appliedPromo, applyPromo: applyPromoGlobal, removePromo } = useCart();
 
     const [step, setStep] = useState<"form" | "success">("form");
     const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
@@ -93,15 +93,17 @@ export const CheckoutPage = () => {
 
         setIsCalculating(true);
         try {
-            const route = await ymaps.route([STORE_COORDS, targetAddress]);
-            const distanceInKm = Math.round(route.getLength() / 1000 * 10) / 10;
-            setCalculatedDistance(distanceInKm);
-
             const geocodeResult = await ymaps.geocode(targetAddress);
             const firstGeoObject = geocodeResult.geoObjects.get(0);
 
             if (firstGeoObject && mapRef.current) {
                 const targetCoords = firstGeoObject.geometry.getCoordinates();
+
+                // Рассчитываем ПРЯМОЕ (радиальное) расстояние, так как зоны в кабинете — это круги
+                const distanceInMeters = ymaps.coordSystem.geo.getDistance(STORE_COORDS, targetCoords);
+                const distanceInKm = distanceInMeters / 1000;
+                setCalculatedDistance(Math.round(distanceInKm * 10) / 10);
+
                 if (!mapInstance.current) {
                     mapInstance.current = new ymaps.Map(mapRef.current, {
                         center: targetCoords,
@@ -113,14 +115,18 @@ export const CheckoutPage = () => {
                 }
                 mapInstance.current.geoObjects.removeAll();
                 mapInstance.current.geoObjects.add(new ymaps.Placemark(targetCoords, { balloonContent: targetAddress }, { preset: 'islands#pinkDotIcon' }));
-            }
 
-            let cost = 500;
-            if (distanceInKm > 20) cost = 1500;
-            else if (distanceInKm > 10) cost = 1000;
-            else if (distanceInKm > 5) cost = 650;
-            else cost = 500;
-            setManualDeliveryCost(cost);
+                // Новая логика расчета тарифов на основе радиального расстояния
+                let cost = null;
+                if (distanceInKm <= 3) {
+                    cost = 400; // Базовая зона
+                } else if (distanceInKm <= 25) {
+                    // +100₽ за каждый километр свыше 3-х (округляем остаток вверх)
+                    cost = 400 + Math.ceil(distanceInKm - 3) * 100;
+                }
+
+                setManualDeliveryCost(cost);
+            }
         } catch (err) {
             console.error("Route calculation error:", err);
             setManualDeliveryCost(null);
@@ -149,11 +155,23 @@ export const CheckoutPage = () => {
     }, []);
 
     const deliveryCost = deliveryType === "pickup" ? 0 : (manualDeliveryCost || 0);
-    const promoDiscount = appliedPromo ? Math.round(totalPrice * appliedPromo.discount / 100) : 0;
-    const futureDiscount = deliveryTime === "later" ? Math.round(totalPrice * 0.1) : 0;
+
+    const getDeliveryTime = (km: number | null): string => {
+        if (!km) return "";
+        if (km <= 3) return "~30 минут";
+        if (km <= 5) return "~60 минут";
+        return "~90 минут";
+    };
+    const promoDiscount = appliedPromo ? Math.round(subtotal * appliedPromo.discount / 100) : 0;
+    // Логика "Либо-Либо": если применен промокод, скидка за предзаказ отменяется (0)
+    const futureDiscount = (deliveryTime === "later" && !appliedPromo) ? Math.round(subtotal * 0.1) : 0;
     const discount = promoDiscount + futureDiscount;
-    const finalTotal = totalPrice - discount + deliveryCost;
-    const isFormValid = name.trim() && phone.replace(/\D/g, '').length === 11 && (deliveryType === "pickup" || (address.trim() && !isCalculating)) && (deliveryTime === "today" || targetDate.trim());
+    const finalTotal = subtotal - discount + deliveryCost;
+
+    // Валидация формы: доставка должна быть либо pickup, либо с рассчитанной стоимостью (manualDeliveryCost)
+    const isDeliveryValid = deliveryType === "pickup" || (address.trim() && !isCalculating && manualDeliveryCost !== null);
+
+    const isFormValid = name.trim() && phone.replace(/\D/g, '').length === 11 && isDeliveryValid && (deliveryTime === "today" || targetDate.trim());
 
     const handleApplyPromo = () => {
         if (!promo.trim()) return;
@@ -165,13 +183,26 @@ export const CheckoutPage = () => {
         }
     };
 
-    // Функция перехода к успешному экрану
-    const handlePaymentSuccess = () => {
-        if (pollingRef.current) clearInterval(pollingRef.current);
-        setPaymentPolling(false);
-        setStep("success");
-        setShowPaymentWidget(false);
-        clearCart();
+    // Функция перехода к успешному экрану (теперь проверяет статус через API)
+    const handlePaymentSuccess = async () => {
+        if (!paymentId) return;
+
+        try {
+            const res = await fetch(`/api/check-payment?id=${paymentId}`);
+            const data = await res.json();
+
+            if (data.status === 'succeeded') {
+                if (pollingRef.current) clearInterval(pollingRef.current);
+                setPaymentPolling(false);
+                setStep("success");
+                setShowPaymentWidget(false);
+                clearCart();
+            } else {
+                alert("Оплата еще не подтверждена. Пожалуйста, завершите платеж или подождите несколько секунд.");
+            }
+        } catch (e) {
+            alert("Ошибка при проверке статуса платежа. Попробуйте нажать кнопку еще раз через 5-10 секунд.");
+        }
     };
 
     // Polling статуса платежа (запрашиваем каждые 3 сек)
@@ -434,7 +465,7 @@ export const CheckoutPage = () => {
                                 >
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-5 h-5 text-brand-hot" />
-                                        <span>{deliveryTime === "today" ? "Сегодня (~60–90 мин)" : "На другой день (-10%)"}</span>
+                                        <span>{deliveryTime === "today" ? "Сегодня (~60–90 мин)" : `На другой день ${!appliedPromo ? "(-10%)" : ""}`}</span>
                                     </div>
                                     <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isTimeDropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
@@ -459,7 +490,7 @@ export const CheckoutPage = () => {
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span>На другой день</span>
-                                                    <span className="text-[10px] text-white bg-brand-hot px-1.5 py-0.5 rounded-full">-10%</span>
+                                                    {!appliedPromo && <span className="text-[10px] text-white bg-brand-hot px-1.5 py-0.5 rounded-full">-10%</span>}
                                                 </div>
                                                 {deliveryTime === "later" && <CheckCircle2 className="w-5 h-5 text-brand-dark" />}
                                             </button>
@@ -529,6 +560,12 @@ export const CheckoutPage = () => {
                                         }
                                     }} onBlur={() => { if (address.trim() && !calculatedDistance) calculateDelivery(address); }} className={inputClass} />
                                     {isCalculating && <div className="absolute right-3 top-1/2 -translate-y-1/2"><Loader2 className="w-4 h-4 text-brand-hot animate-spin" /></div>}
+
+                                    {address.trim() && !isCalculating && manualDeliveryCost === null && (
+                                        <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 animate-pulse">
+                                            ⚠️ пока так далеко не доставляем
+                                        </p>
+                                    )}
                                 </div>
 
                                 {address && (
@@ -557,23 +594,76 @@ export const CheckoutPage = () => {
                                     <textarea placeholder="Пожелания к заказу (необязательно)" value={comment} onChange={e => setComment(e.target.value)} rows={2} className="w-full px-4 py-3 rounded-xl border border-brand-pink/20 bg-brand-pink/5 text-sm resize-none focus:outline-none focus:border-brand-hot focus:bg-white transition-colors" />
                                 </div>
                                 <div className={`w-full overflow-hidden border border-brand-pink/20 bg-gray-50 transition-all duration-700 rounded-2xl ${address ? 'h-56 opacity-100 mt-2 shadow-inner' : 'h-0 opacity-0 mt-0'}`}><div ref={mapRef} className="w-full h-full" /></div>
-                                <div className="bg-brand-pink/5 p-3 rounded-xl border border-brand-pink/10">
+                                <div className="bg-brand-pink/5 p-4 rounded-2xl border border-brand-pink/20 space-y-3">
+                                    <div className="space-y-2">
+                                        <div className="flex items-start gap-2 text-[11px]">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-brand-hot mt-1 shrink-0" />
+                                            <p className="text-gray-500 leading-tight"><b>От:</b> Украинский б-р, 8с1</p>
+                                        </div>
+                                        <div className="flex items-start gap-2 text-[11px]">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shrink-0" />
+                                            <p className="text-gray-500 leading-tight"><b>До:</b> {address}</p>
+                                        </div>
+                                    </div>
+
                                     {calculatedDistance ? (
-                                        <div className="flex justify-between items-center text-xs text-brand-dark mb-2"><span className="font-bold">Расстояние:</span><span className="bg-white px-2 py-0.5 rounded-full border border-brand-pink/20 shadow-sm">{calculatedDistance} км</span></div>
-                                    ) : (<p className="text-xs text-brand-dark font-bold mb-2">Тарифы (от Украинский б-р, 8с1):</p>)}
-                                    <ul className="text-[10px] text-gray-500 space-y-0.5 font-medium">
-                                        <li className={calculatedDistance && calculatedDistance <= 5 ? "text-brand-hot font-bold" : ""}>• До 5 км — 500 ₽</li>
-                                        <li className={calculatedDistance && calculatedDistance > 5 && calculatedDistance <= 10 ? "text-brand-hot font-bold" : ""}>• От 5 до 10 км — 650 ₽</li>
-                                        <li className={calculatedDistance && calculatedDistance > 10 && calculatedDistance <= 20 ? "text-brand-hot font-bold" : ""}>• От 10 до 20 км — 1 000 ₽</li>
-                                        <li className={calculatedDistance && calculatedDistance > 20 ? "text-brand-hot font-bold" : ""}>• Более 20 км — 1 500 ₽</li>
-                                    </ul>
+                                        <div className="pt-2 border-t border-brand-pink/10">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-bold text-brand-dark">Расстояние:</span>
+                                                <span className="text-xs bg-white px-2 py-0.5 rounded-full border border-brand-pink/20 shadow-sm">{calculatedDistance} км</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-brand-dark">Доставка:</span>
+                                                <span className="text-sm font-dela text-brand-hot">
+                                                    {manualDeliveryCost !== null ? `${manualDeliveryCost} ₽ · ${getDeliveryTime(calculatedDistance)}` : "Недоступна"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="pt-2 border-t border-brand-pink/10">
+                                            <p className="text-[11px] text-brand-dark font-bold mb-1">Тарифы:</p>
+                                            <ul className="text-[10px] text-gray-500 space-y-0.5">
+                                                <li>• До 3 км — 400 ₽ (30 мин)</li>
+                                                <li>• Свыше 3 км — 400 ₽ + 100 ₽/км (60-90 мин)</li>
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
 
                         {deliveryType === "pickup" && (
-                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                                <div className="flex gap-3 items-start"><MapPin className="w-5 h-5 text-brand-hot shrink-0 mt-0.5" /><div><p className="font-bold text-brand-dark text-sm">Украинский бульвар, 8с1</p><p className="text-gray-400 text-xs mt-0.5">Ежедневно 9:00 – 20:00</p></div></div>
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                                <div className="flex gap-4 items-start">
+                                    <div className="w-12 h-12 bg-brand-pink/10 rounded-2xl flex items-center justify-center shrink-0">
+                                        <MapPin className="w-6 h-6 text-brand-hot" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="font-dela text-lg text-brand-dark leading-none">Apelsinka Bar</h3>
+                                        <p className="text-gray-500 text-sm">Украинский бульвар, 8с1</p>
+                                        <p className="text-brand-hot text-xs font-bold uppercase tracking-wider">Ежедневно 9:00 – 20:00</p>
+                                    </div>
+                                </div>
+
+                                <div className="relative rounded-2xl overflow-hidden border border-brand-pink/10 shadow-inner h-64 group">
+                                    <iframe
+                                        src="https://yandex.ru/map-widget/v1/org/157424703728"
+                                        width="100%"
+                                        height="100%"
+                                        frameBorder="0"
+                                        className="grayscale-[20%] group-hover:grayscale-0 transition-all duration-700"
+                                        title="Apelsinka на карте"
+                                    />
+                                    <a
+                                        href="https://yandex.ru/maps/org/apelsinka/157424703728/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute bottom-4 right-4 bg-brand-hot text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:bg-brand-dark transition-all active:scale-95"
+                                    >
+                                        Открыть в Картах →
+                                    </a>
+                                </div>
+
                             </div>
                         )}
 
@@ -600,9 +690,9 @@ export const CheckoutPage = () => {
                             <h2 className="font-dela text-base text-brand-dark mb-3">Ваш заказ</h2>
                             <div className="space-y-2">{items.map(item => (<div key={item.id} className="flex justify-between text-sm text-gray-500"><span className="truncate mr-2">{item.name} × {item.quantity}</span><span className="shrink-0 font-bold text-brand-dark">{item.price * item.quantity} ₽</span></div>))}</div>
                             <div className="border-t border-gray-100 mt-3 pt-3 space-y-1">
-                                {deliveryType === "delivery" && (<div className="flex justify-between text-sm text-gray-400"><span>Доставка {calculatedDistance ? `(${calculatedDistance} км)` : ""}</span><span className="text-right font-bold text-brand-dark">{manualDeliveryCost ? `${manualDeliveryCost} ₽` : "Расчет..."}</span></div>)}
+                                {deliveryType === "delivery" && (<div className="flex justify-between text-sm text-gray-400"><span>Доставка {calculatedDistance ? `(${calculatedDistance} км)` : ""}</span><span className={manualDeliveryCost === null && !isCalculating && address ? "text-right font-bold text-red-500 text-xs max-w-[140px]" : "text-right font-bold text-brand-dark"}>{manualDeliveryCost === null && !isCalculating && address ? "Недоступна (слишком далеко)" : manualDeliveryCost !== null ? `${manualDeliveryCost} ₽ · ${getDeliveryTime(calculatedDistance)}` : "Расчет..."}</span></div>)}
                                 {appliedPromo && (<div className="flex justify-between text-sm text-green-600"><span>Промокод {appliedPromo.code} (-{appliedPromo.discount}%)</span><span>−{promoDiscount} ₽</span></div>)}
-                                {deliveryTime === "later" && (<div className="flex justify-between text-sm text-brand-hot font-bold"><span>Скидка за предзаказ 10%</span><span>−{futureDiscount} ₽</span></div>)}
+                                {futureDiscount > 0 && (<div className="flex justify-between text-sm text-brand-hot font-bold"><span>Скидка за предзаказ 10%</span><span>−{futureDiscount} ₽</span></div>)}
                                 <div className="flex justify-between font-dela text-xl text-brand-dark pt-1"><span>Итого</span><span>{finalTotal} ₽</span></div>
                             </div>
                         </div>
@@ -612,11 +702,33 @@ export const CheckoutPage = () => {
                                 e.preventDefault();
                                 handleSubmit('embedded');
                             }}
-                            disabled={!isFormValid || isSubmitting}
+                            disabled={!isFormValid || isSubmitting || (deliveryType === 'delivery' && manualDeliveryCost === null)}
                             className="w-full py-5 bg-brand-hot text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand-hot/20 hover:bg-brand-dark transition-colors active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[56px]"
                         >
                             {isSubmitting ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Подтвердить заказ →"}
                         </button>
+
+                        {/* Support Contact Block */}
+                        <div className="mt-6 bg-brand-pink/5 border border-brand-pink/20 rounded-2xl p-4 flex flex-col items-center text-center gap-2 shadow-sm">
+                            <p className="font-sans text-brand-dark/60 text-xs font-bold">Не получается заказать или есть вопросы?</p>
+                            <a
+                                href="tel:+79017293919"
+                                className="font-dela text-xl text-brand-dark hover:text-brand-hot transition-colors flex items-center gap-2"
+                            >
+                                <Phone className="w-5 h-5 text-brand-hot" /> +7 (901) 729-39-19
+                            </a>
+                            <a
+                                href="https://t.me/gorbachevdmitry87"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-2 px-6 py-3 bg-[#2AABEE] text-white rounded-xl font-bold font-sans text-sm flex items-center justify-center gap-2 hover:bg-[#229ED9] transition-all shadow-[0_4px_10px_rgba(42,171,238,0.2)] w-fit"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12 12-5.373 12-12S18.628 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.658-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z" />
+                                </svg>
+                                Написать в Telegram
+                            </a>
+                        </div>
                         <div className="mt-8 pt-6 border-t border-gray-100 text-center">
                             <p className="text-[10px] text-gray-400 leading-relaxed font-sans">
                                 Индивидуальный предприниматель Горбачева Гахара Муриковна<br />

@@ -21,7 +21,7 @@ export const OrderCTA = () => {
                             <motion.a
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                href="https://t.me/apelsinkabarbot"
+                                href="https://t.me/gorbachevdmitry87"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center gap-3 bg-white text-brand-hot px-8 py-5 rounded-full font-bold text-xl hover:bg-brand-cream transition-all duration-200"

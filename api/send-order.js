@@ -114,7 +114,9 @@ export default async function handler(req, res) {
                 if (!realProduct) {
                     throw new Error(`Товар "${clientItem.name}" не найден в базе данных сервера. Пожалуйста, обновите страницу.`);
                 }
-                const price = parseFloat(realProduct.price) || 0;
+                // Очищаем цену от пробелов и валютных символов на случай, если в JSON попал грязный формат
+                const priceMatch = String(realProduct.price).replace(/\s/g, '').match(/\d+/);
+                const price = priceMatch ? parseFloat(priceMatch[0]) : 0;
                 const qty = parseInt(clientItem.quantity) || 1;
                 calculatedBaseTotal += price * qty;
             });
@@ -122,17 +124,25 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: itemErr.message });
         }
 
-        // Считаем скидки
-        const serverPromo = productsData.promoCodes.find(p => p.code === order.appliedPromo && p.isActive);
+        // Считаем скидки (логика "Либо-Либо"):
+        // Если есть промокод — скидка предзаказа 10% НЕ применяется (приоритет промокода)
+        const serverPromo = productsData.promoCodes?.find(p => p.code === order.appliedPromo && p.isActive);
         const promoDiscountPct = serverPromo ? serverPromo.discount : 0;
         const promoDiscountAmount = Math.round(calculatedBaseTotal * (promoDiscountPct / 100));
 
         const isPreorder = order.deliveryTime === 'later';
-        const preorderDiscountAmount = isPreorder ? Math.round(calculatedBaseTotal * 0.1) : 0;
+        // Скидка предзаказа только если НЕТ активного промокода
+        const preorderDiscountAmount = (isPreorder && !serverPromo) ? Math.round(calculatedBaseTotal * 0.1) : 0;
         const totalDiscount = promoDiscountAmount + preorderDiscountAmount;
 
         // Доставка берется как пришла, но мы проверяем логику
         const clientDeliveryCost = parseFloat(order.deliveryCost) || 0;
+
+        // ЗАЩИТА: Минимальная стоимость доставки 400р, если это доставка курьером
+        if (order.deliveryType === 'delivery' && clientDeliveryCost < 400) {
+            return res.status(403).json({ error: 'Ошибка: стоимость доставки не может быть меньше 400 ₽' });
+        }
+
         const serverFinalTotal = calculatedBaseTotal - totalDiscount + clientDeliveryCost;
 
         console.log('[Security] Price Check:', {
@@ -162,13 +172,22 @@ export default async function handler(req, res) {
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
                 const qty = Math.max(1, parseInt(item.quantity) || 1);
+                // Находим цену в серверной базе для безопасности
+                const realProduct = serverProducts.find(p => p.name === item.name);
+                const priceMatch = realProduct ? String(realProduct.price).replace(/\s/g, '').match(/\d+/) : null;
+                const serverPrice = priceMatch ? parseFloat(priceMatch[0]) : 0;
+
                 for (let i = 0; i < qty; i++) {
-                    allIndividualItems.push({ ...item, quantity: 1 });
+                    allIndividualItems.push({
+                        ...item,
+                        quantity: 1,
+                        price: serverPrice // Принудительно ставим серверную цену
+                    });
                 }
             });
         }
 
-        const baseCartSum = allIndividualItems.reduce((s, i) => s + (parseFloat(i.price) || 0), 0);
+        const baseCartSum = allIndividualItems.reduce((s, i) => s + (i.price || 0), 0);
 
         allIndividualItems.forEach((item, index) => {
             const isLast = index === allIndividualItems.length - 1;
