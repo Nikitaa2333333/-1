@@ -101,8 +101,15 @@ export default async function handler(req, res) {
         const paymentObj = event.object;
         const order = JSON.parse(paymentObj.metadata?.orderData || '{}');
 
+        const host = req.headers.host;
+        const protocol = req.headers['x-forwarded-proto'] || 'https';
+
         const itemsText = (order.items || [])
-            .map(item => `• ${item.name} × ${item.quantity} — ${item.price * item.quantity} ₽`)
+            .map(item => {
+                const productUrl = item.id ? `${protocol}://${host}/product/${item.id}` : null;
+                const nameText = productUrl ? `<a href="${productUrl}">${item.name}</a>` : `<b>${item.name}</b>`;
+                return `• ${nameText} × ${item.quantity} — ${item.price * item.quantity} ₽`;
+            })
             .join('\n');
 
         const totalText = [

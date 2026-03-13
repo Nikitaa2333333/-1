@@ -138,9 +138,9 @@ export default async function handler(req, res) {
         // Доставка берется как пришла, но мы проверяем логику
         const clientDeliveryCost = parseFloat(order.deliveryCost) || 0;
 
-        // ЗАЩИТА: Минимальная стоимость доставки 400р, если это доставка курьером
-        if (order.deliveryType === 'delivery' && clientDeliveryCost < 400) {
-            return res.status(403).json({ error: 'Ошибка: стоимость доставки не может быть меньше 400 ₽' });
+        // ЗАЩИТА: Минимальная стоимость доставки 600р, если это доставка курьером
+        if (order.deliveryType === 'delivery' && clientDeliveryCost < 600) {
+            return res.status(403).json({ error: 'Ошибка: стоимость доставки не может быть меньше 600 ₽' });
         }
 
         const serverFinalTotal = calculatedBaseTotal - totalDiscount + clientDeliveryCost;
@@ -331,7 +331,11 @@ export default async function handler(req, res) {
         if (BOT_TOKEN && ADMIN_CHAT_IDS) {
             const adminIds = ADMIN_CHAT_IDS.split(',').map(id => id.trim());
 
-            const itemsText = order.items.map(item => `• ${item.name} × ${item.quantity} — ${item.price * item.quantity} ₽`).join('\n');
+            const itemsText = order.items.map(item => {
+                const productUrl = item.id ? `${protocol}://${host}/product/${item.id}` : null;
+                const nameText = productUrl ? `<a href="${productUrl}">${item.name}</a>` : `<b>${item.name}</b>`;
+                return `• ${nameText} × ${item.quantity} — ${item.price * item.quantity} ₽`;
+            }).join('\n');
             const addressText = order.deliveryType === 'delivery'
                 ? `📍 Адрес: ${order.address}${order.apartment ? `, кв. ${order.apartment}` : ''}${order.floor ? `, эт. ${order.floor}` : ''}`
                 : '🏪 Самовывоз';

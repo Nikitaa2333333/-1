@@ -116,13 +116,10 @@ export const CheckoutPage = () => {
                 mapInstance.current.geoObjects.removeAll();
                 mapInstance.current.geoObjects.add(new ymaps.Placemark(targetCoords, { balloonContent: targetAddress }, { preset: 'islands#pinkDotIcon' }));
 
-                // Новая логика расчета тарифов на основе радиального расстояния
-                let cost = null;
-                if (distanceInKm <= 3) {
-                    cost = 400; // Базовая зона
-                } else if (distanceInKm <= 25) {
-                    // +100₽ за каждый километр свыше 3-х (округляем остаток вверх)
-                    cost = 400 + Math.ceil(distanceInKm - 3) * 100;
+                // Новая логика: 600₽ база (до 3 км включительно), далее +100₽ за каждый км
+                let cost = 600;
+                if (distanceInKm > 3) {
+                    cost += Math.ceil(distanceInKm - 3) * 100;
                 }
 
                 setManualDeliveryCost(cost);
@@ -335,6 +332,7 @@ export const CheckoutPage = () => {
         // Создаем МАКСИМАЛЬНО чистый объект БЕЗ вложенных объектов исходного состояния
         // Собираем всё вручную, чтобы исключить попадание Proxy или объектов событий
         const cleanItems = items.map(item => ({
+            id: item.id,
             name: String(item.name || ''),
             quantity: Number(item.quantity || 1),
             price: Number(item.price || 0)
@@ -623,8 +621,8 @@ export const CheckoutPage = () => {
                                         <div className="pt-2 border-t border-brand-pink/10">
                                             <p className="text-[11px] text-brand-dark font-bold mb-1">Тарифы:</p>
                                             <ul className="text-[10px] text-gray-500 space-y-0.5">
-                                                <li>• До 3 км — 400 ₽ (30 мин)</li>
-                                                <li>• Свыше 3 км — 400 ₽ + 100 ₽/км (60-90 мин)</li>
+                                                <li>• До 3 км — 600 ₽ (30 мин)</li>
+                                                <li>• Свыше 3 км — 600 ₽ + 100 ₽/км (60-90 мин)</li>
                                             </ul>
                                         </div>
                                     )}
