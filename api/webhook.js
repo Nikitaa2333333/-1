@@ -99,7 +99,20 @@ export default async function handler(req, res) {
         // создании платежа на НАШЕМ сервере, а не переданы клиентом
         // =========================================================
         const paymentObj = event.object;
-        const order = JSON.parse(paymentObj.metadata?.orderData || '{}');
+        
+        // Сборка данных из чанков (od0, od1...) или из прямого поля orderData
+        const metadata = paymentObj.metadata || {};
+        let orderStr = '';
+        if (metadata.orderData) {
+            orderStr = metadata.orderData;
+        } else {
+            const keys = Object.keys(metadata)
+                .filter(k => k.startsWith('od'))
+                .sort((a, b) => parseInt(a.replace('od', '')) - parseInt(b.replace('od', '')));
+            keys.forEach(k => { orderStr += metadata[k]; });
+        }
+
+        const order = JSON.parse(orderStr || '{}');
 
         const host = req.headers.host;
         const protocol = req.headers['x-forwarded-proto'] || 'https';

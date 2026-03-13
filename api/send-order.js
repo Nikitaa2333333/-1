@@ -268,6 +268,21 @@ export default async function handler(req, res) {
             });
         }
 
+        // КРИТИЧНО: ЮKassa имеет лимит 512 символов на ЗНАЧЕНИЕ в metadata.
+        // Если заказ большой (много товаров или длинный адрес), JSON.stringify(order) этот лимит превысит.
+        // Поэтому мы разбиваем данные на куски od0, od1... (каждый до 510 симв).
+        const orderStr = JSON.stringify(order);
+        const metadata = {};
+        const chunkSize = 510;
+        
+        if (orderStr.length <= chunkSize) {
+            metadata.orderData = orderStr; // обратная совместимость
+        } else {
+            for (let i = 0; i < orderStr.length; i += chunkSize) {
+                metadata[`od${Math.floor(i / chunkSize)}`] = orderStr.substring(i, i + chunkSize);
+            }
+        }
+
         const paymentData = {
             amount: {
                 value: totalAmount.toFixed(2),  // "500.00" — СТРОГО 2 знака
@@ -278,9 +293,7 @@ export default async function handler(req, res) {
                 : { type: 'embedded' },
             capture: true,
             description: `Заказ: ${order.name || 'покупатель'} (${order.phone || ''})`.substring(0, 128),
-            metadata: {
-                orderData: JSON.stringify(order)
-            },
+            metadata: metadata,
             receipt: {
                 customer: {
                     phone: phoneForReceipt  // "79001234567" — БЕЗ ПЛЮСА
