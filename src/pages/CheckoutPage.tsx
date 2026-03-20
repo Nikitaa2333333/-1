@@ -116,10 +116,10 @@ export const CheckoutPage = () => {
                 mapInstance.current.geoObjects.removeAll();
                 mapInstance.current.geoObjects.add(new ymaps.Placemark(targetCoords, { balloonContent: targetAddress }, { preset: 'islands#pinkDotIcon' }));
 
-                // Новая логика: 600₽ база (до 3 км включительно), далее +100₽ за каждый км
+                // Новая логика: 600₽ база (до 3 км включительно), далее +200₽ за каждый км
                 let cost = 600;
                 if (distanceInKm > 3) {
-                    cost += Math.ceil(distanceInKm - 3) * 100;
+                    cost += Math.ceil(distanceInKm - 3) * 200;
                 }
 
                 setManualDeliveryCost(cost);
@@ -622,7 +622,7 @@ export const CheckoutPage = () => {
                                             <p className="text-[11px] text-brand-dark font-bold mb-1">Тарифы:</p>
                                             <ul className="text-[10px] text-gray-500 space-y-0.5">
                                                 <li>• До 3 км — 600 ₽ (30 мин)</li>
-                                                <li>• Свыше 3 км — 600 ₽ + 100 ₽/км (60-90 мин)</li>
+                                                <li>• Свыше 3 км — 600 ₽ + 200 ₽/км (60-90 мин)</li>
                                             </ul>
                                         </div>
                                     )}

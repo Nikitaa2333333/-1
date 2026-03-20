@@ -65,7 +65,12 @@ export default async function handler(req, res) {
 
         // Если с GitHub не вышло, берем локальные (старые) данные
         if (!productsData) {
-            productsData = require('../src/data/products.json');
+            const fs = await import('fs');
+            const path = await import('path');
+            const { fileURLToPath } = await import('url');
+            const __dirname = path.dirname(fileURLToPath(import.meta.url));
+            const localPath = path.resolve(__dirname, '../src/data/products.json');
+            productsData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
             console.log('[Sync] Используются локальные данные товаров (возможна задержка синхронизации).');
         }
 

@@ -7,8 +7,8 @@ import { useCart } from "../context/CartContext";
 
 const DELIVERY_ZONES = [
     { label: "до 3 км", price: 600 },
-    { label: "3–7 км", price: 1000 },
-    { label: "7–15 км", price: 1800 },
+    { label: "3–7 км", price: 1400 },
+    { label: "7–15 км", price: 3000 },
 ];
 
 type Step = "form" | "success";
