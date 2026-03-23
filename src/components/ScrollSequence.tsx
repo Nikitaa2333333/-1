@@ -189,7 +189,7 @@ export const ScrollSequence = () => {
                 </motion.div>
 
                 <a href="#products" className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 bg-white text-brand-dark py-5 px-10 rounded-full font-sans font-bold text-lg hover:bg-brand-pink transition-all active:scale-95 shadow-2xl pointer-events-auto whitespace-nowrap">
-                    Выбери свой вкус
+                    Меню
                 </a>
             </div>
         </div>
