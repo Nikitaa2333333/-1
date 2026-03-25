@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Ключи ЮKassa не настроены' });
     }
 
-    // Проверяем секретный токен (добавишь REFUND_SECRET в Vercel env)
+    // Проверяем секретный токен (добавишь REFUND_SECRET в Timeweb env)
     const authHeader = req.headers['x-refund-secret'];
     if (REFUND_SECRET && authHeader !== REFUND_SECRET) {
         console.warn('[Refund] Попытка несанкционированного возврата!');

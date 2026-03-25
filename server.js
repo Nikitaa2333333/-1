@@ -31,15 +31,16 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Импорты API функций (динамические, так как это Vercel-style хендлеры)
+// Импорты API функций (динамические, так как это Timeweb-v3 хендлеры)
 import sendOrderHandler from './api/send-order.js';
 import webhookHandler from './api/webhook.js';
 import saveContentHandler from './api/save-content.js';
+import getContentHandler from './api/get-content.js';
 import checkPaymentHandler from './api/check-payment.js';
 import refundHandler from './api/refund.js';
 
-// Хелпер для адаптации Vercel хендлеров под Express
-const vercelToExpress = (handler) => async (req, res) => {
+// Хелпер для адаптации кода под Express (Timeweb)
+const timewebToExpress = (handler) => async (req, res) => {
     try {
         await handler(req, res);
     } catch (err) {
@@ -49,11 +50,12 @@ const vercelToExpress = (handler) => async (req, res) => {
 };
 
 // API роуты
-app.post('/api/send-order', vercelToExpress(sendOrderHandler));
-app.post('/api/webhook', vercelToExpress(webhookHandler));
-app.post('/api/save-content', vercelToExpress(saveContentHandler));
-app.get('/api/check-payment', vercelToExpress(checkPaymentHandler));
-app.post('/api/refund', vercelToExpress(refundHandler));
+app.post('/api/send-order', timewebToExpress(sendOrderHandler));
+app.post('/api/webhook', timewebToExpress(webhookHandler));
+app.post('/api/save-content', timewebToExpress(saveContentHandler));
+app.get('/api/get-content', timewebToExpress(getContentHandler));
+app.get('/api/check-payment', timewebToExpress(checkPaymentHandler));
+app.post('/api/refund', timewebToExpress(refundHandler));
 
 // Диагностика для нас (проверка версии кода)
 app.get('/api/status', (req, res) => {

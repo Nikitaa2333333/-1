@@ -282,6 +282,22 @@ export const Dashboard = () => {
     const [activeTab, setActiveTab] = useState<Section>('menu');
     const [formData, setFormData] = useState(data);
     const [history, setHistory] = useState<any[]>([JSON.parse(JSON.stringify(data))]);
+    
+    // Загрузка свежих данных с сервера при входе
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetch('/api/get-content')
+                .then(res => res.json())
+                .then(serverData => {
+                    if (serverData && serverData.products) {
+                        setFormData(serverData);
+                        setHistory([JSON.parse(JSON.stringify(serverData))]);
+                        setHistoryIndex(0);
+                    }
+                })
+                .catch(err => console.error('Ошибка загрузки свежих данных:', err));
+        }
+    }, [isAuthenticated]);
     const [historyIndex, setHistoryIndex] = useState(0);
     const [isSaving, setIsSaving] = useState(false);
     const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
@@ -336,7 +352,7 @@ export const Dashboard = () => {
             });
             if (response.ok) {
                 setIsSaving(false);
-                alert('Супер! Данные сохранены. Хостинг (Vercel) уже начал обновление сайта. Изменения появятся в течение 1-2 минут! 🍓');
+                alert('Супер! Данные сохранены. Хостинг (Timeweb) уже начал обновление сайта. Изменения появятся в течение 1-2 минут! 🍓');
             } else {
                 const errData = await response.json();
                 throw new Error(errData.error || 'Ошибка сервера');

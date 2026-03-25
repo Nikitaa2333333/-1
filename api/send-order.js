@@ -12,7 +12,7 @@
  */
 
 // ВАЖНО: Мы не используем статический импорт, так как админка меняет файл на GitHub, 
-// и нам нужны свежие данные без пересборки Vercel.
+// и нам нужны свежие данные без пересборки сайта на Timeweb.
 let productsCache = null;
 
 export default async function handler(req, res) {
@@ -20,19 +20,20 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const {
-        BOT_TOKEN,
-        ADMIN_CHAT_IDS,
-        YOOKASSA_SHOP_ID,
-        YOOKASSA_SECRET_KEY,
-    } = process.env;
+    // Очищаем ключи от лишних пробелов/переносов (бывает при вставке в Timeweb)
+    const YOOKASSA_SHOP_ID = (process.env.YOOKASSA_SHOP_ID || '').trim();
+    const YOOKASSA_SECRET_KEY = (process.env.YOOKASSA_SECRET_KEY || '').trim();
+    const BOT_TOKEN = (process.env.BOT_TOKEN || '').trim();
+    const ADMIN_CHAT_IDS = (process.env.ADMIN_CHAT_IDS || '').trim();
+
+    // БЕЗОПАСНАЯ ПРОВЕРКА (в консоль Timeweb)
+    console.log('[DEBUG] Ключи:', {
+        shopId: YOOKASSA_SHOP_ID ? `${YOOKASSA_SHOP_ID.substring(0, 3)}...` : 'ОТСУТСТВУЕТ',
+        secretKey: YOOKASSA_SECRET_KEY ? `${YOOKASSA_SECRET_KEY.substring(0, 7)}...${YOOKASSA_SECRET_KEY.slice(-4)}` : 'ОТСУТСТВУЕТ'
+    });
 
     if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) {
-        return res.status(500).json({ error: 'ОШИБКА: Боевые ключи ЮKassa не настроены' });
-    }
-
-    if (!BOT_TOKEN || !ADMIN_CHAT_IDS) {
-        return res.status(500).json({ error: 'ОШИБКА: Настройки Telegram не найдены' });
+        return res.status(500).json({ error: 'ОШИБКА: Ключи ЮKassa не найдены в переменных окружения Timeweb' });
     }
 
     const order = req.body;
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
         let productsData = null;
 
         try {
-            // Пытаемся получить свежие данные с GitHub, чтобы не ждать пересборки Vercel
+            // Пытаемся получить свежие данные с GitHub, чтобы не ждать пересборки сайта на Timeweb
             const ghRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${dataPath}?ref=${branch}`, {
                 headers: {
                     'Authorization': `Bearer ${GITHUB_TOKEN}`,
