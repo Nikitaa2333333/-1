@@ -2,11 +2,15 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Telegraf, Markup } from 'telegraf';
-import dotenv from 'dotenv';
 import fs from 'fs';
 
-// Конфигурация переменных окружения
-dotenv.config();
+// Конфигурация переменных окружения (только для локальной разработки)
+try {
+    const { default: dotenv } = await import('dotenv');
+    dotenv.config();
+} catch (e) {
+    console.log('ℹ️ Dotenv не найден или файл .env отсутствует (это нормально для сервера Timeweb)');
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
