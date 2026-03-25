@@ -13,6 +13,16 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// === Защита от кривых URL (боты-сканеры шлют невалидные пути типа /%c0) ===
+app.use((req, res, next) => {
+    try {
+        decodeURIComponent(req.path);
+        next();
+    } catch (e) {
+        res.status(400).send('Bad Request: Invalid URL encoding');
+    }
+});
+
 // Мидлвары для обработки JSON и данных форм
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -54,6 +64,15 @@ app.get('*', (req, res) => {
     }
 });
 
+// === Глобальный обработчик ошибок Express ===
+app.use((err, req, res, next) => {
+    if (err instanceof URIError) {
+        return res.status(400).send('Bad Request: Invalid URL');
+    }
+    console.error('Unhandled Express error:', err);
+    res.status(500).send('Internal Server Error');
+});
+
 // === Запуск Телеграм-бота ===
 if (process.env.BOT_TOKEN) {
     const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -88,11 +107,24 @@ if (process.env.BOT_TOKEN) {
         ctx.reply('Спасибо за сообщение! Мы передали его менеджеру, скоро вам ответят. 🍓');
     });
 
-    bot.launch().then(() => {
-        console.log('✅ Телеграм-бот успешно запущен');
-    }).catch(err => {
-        console.error('❌ Ошибка запуска бота:', err.message);
-    });
+    // Сначала удаляем webhook (на случай если был установлен ранее),
+    // потом запускаем polling. При 409 — ждём и пробуем снова.
+    const launchBot = async (retryDelay = 5000) => {
+        try {
+            await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+            await bot.launch();
+            console.log('✅ Телеграм-бот успешно запущен');
+        } catch (err) {
+            if (err.message && err.message.includes('409')) {
+                console.warn(`⚠️ Бот занят другим процессом (409). Повтор через ${retryDelay / 1000}с...`);
+                setTimeout(() => launchBot(retryDelay), retryDelay);
+            } else {
+                console.error('❌ Ошибка запуска бота:', err.message);
+            }
+        }
+    };
+
+    launchBot();
 
     // Безопасное завершение
     process.once('SIGINT', () => bot.stop('SIGINT'));
