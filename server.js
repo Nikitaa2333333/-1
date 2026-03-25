@@ -55,6 +55,20 @@ app.post('/api/save-content', vercelToExpress(saveContentHandler));
 app.get('/api/check-payment', vercelToExpress(checkPaymentHandler));
 app.post('/api/refund', vercelToExpress(refundHandler));
 
+// Диагностика для нас (проверка версии кода)
+app.get('/api/status', (req, res) => {
+    res.json({
+        status: 'working',
+        platform: 'Timeweb-v3',
+        time: new Date().toISOString(),
+        env: {
+            hasShopId: !!process.env.YOOKASSA_SHOP_ID,
+            hasSecret: !!process.env.YOOKASSA_SECRET_KEY,
+            hasGitToken: !!process.env.GITHUB_TOKEN
+        }
+    });
+});
+
 // Раздача статических файлов фронтенда
 app.use(express.static(path.join(__dirname, 'dist')));
 
