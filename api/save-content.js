@@ -5,7 +5,7 @@ export default async function handler(req, res) {
 
     const { GITHUB_TOKEN, GITHUB_REPO } = process.env;
     if (!GITHUB_TOKEN || !GITHUB_REPO) {
-        return res.status(500).json({ error: 'ОШИБКА: Токены GITHUB_TOKEN и GITHUB_REPO не найдены в настройках Vercel' });
+        return res.status(500).json({ error: 'ОШИБКА: Токены GITHUB_TOKEN и GITHUB_REPO не найдены. Добавьте их в Переменные окружения в панели Timeweb.' });
     }
 
     const branch = "main";
