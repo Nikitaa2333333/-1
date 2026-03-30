@@ -157,13 +157,13 @@
       "category": "strawberry",
       "name": "Тест!!!!!!!!!!!!!!!!!1",
       "weight": "0 гр",
-      "price": "10000",
+      "price": "20000",
       "oldPrice": null,
       "image": "/assets/products/strawberry-1.jpg",
       "desc": "",
       "gallery": [
         {
-          "image": "/assets/products/gal-1774876926041-250.webp"
+          "image": "/assets/products/gal-1774876965507-554.webp"
         }
       ]
     },
