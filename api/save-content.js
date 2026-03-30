@@ -13,46 +13,63 @@ export default async function handler(req, res) {
 
     try {
         let formData = req.body;
-        const uploadPromises = [];
 
-        // 1. Пробегаемся по товарам и ищем новые картинки (в формате base64)
-        formData.products = await Promise.all(formData.products.map(async (product) => {
-            if (product.image && product.image.startsWith('data:image')) {
-                const fileName = `item-${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`;
-                const storagePath = `public/assets/products/${fileName}`;
-                const base64Data = product.image.split(',')[1];
+        // Хелпер для загрузки картинки на GitHub
+        const uploadToGitHub = async (base64String, namePrefix) => {
+            if (!base64String || !base64String.startsWith('data:image')) return base64String;
+            
+            const fileName = `${namePrefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}.webp`;
+            const storagePath = `public/assets/products/${fileName}`;
+            const base64Data = base64String.split(',')[1];
 
-                // Подготавливаем загрузку картинки на GitHub
-                const uploadRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${storagePath}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `📸 Загрузка фото для ${product.name}`,
-                        content: base64Data,
-                        branch: branch
-                    })
-                });
+            // Подготавливаем загрузку картинки на GitHub
+            const uploadRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${storagePath}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `📸 Загрузка фото: ${fileName}`,
+                    content: base64Data,
+                    branch: branch
+                })
+            });
 
-                if (uploadRes.ok) {
-                    // Если загрузилось — меняем путь в JSON на статический
-                    return { ...product, image: `/assets/products/${fileName}` };
-                }
+            if (uploadRes.ok) {
+                // Если загрузилось — меняем путь в JSON на статический
+                return `/assets/products/${fileName}`;
+            } else {
+                const errorText = await uploadRes.text();
+                console.error(`Ошибка загрузки фото ${fileName}:`, errorText);
+                return base64String; // Оставляем как есть, если не вышло
             }
-            return product;
+        };
+
+        // 1. Пробегаемся по товарам и ищем новые картинки (включая галерею)
+        formData.products = await Promise.all(formData.products.map(async (product) => {
+            // Обработка главного фото
+            const mainImage = await uploadToGitHub(product.image, 'item');
+            
+            // Обработка галереи
+            const updatedGallery = product.gallery ? await Promise.all(product.gallery.map(async (item) => {
+                const imgUrl = await uploadToGitHub(item.image, 'gal');
+                return { ...item, image: imgUrl };
+            })) : [];
+
+            return { ...product, image: mainImage, gallery: updatedGallery };
         }));
 
         // 2. Теперь сохраняем обновленный JSON
         const jsonContent = Buffer.from(JSON.stringify(formData, null, 2)).toString('base64');
 
-        // Получаем SHA файла для обновления
-        const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${dataPath}?ref=${branch}`, {
+        // Получаем SHA файла для обновления (с защитой от кэша)
+        const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${dataPath}?ref=${branch}&t=${Date.now()}`, {
             headers: {
                 'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json'
+                'Accept': 'application/vnd.github.v3+json',
+                'Cache-Control': 'no-cache'
             }
         });
 
@@ -70,7 +87,7 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: '🚀 Обновление товаров и фото через Админ-Панель',
+                message: '🚀 Обновление товаров и фото через Админ-Панель (v2)',
                 content: jsonContent,
                 sha: sha,
                 branch: branch
@@ -83,6 +100,7 @@ export default async function handler(req, res) {
 
         res.status(200).json({ success: true });
     } catch (err) {
+        console.error('Save Error:', err);
         res.status(500).json({ error: err.message });
     }
 }

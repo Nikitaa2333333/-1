@@ -28,6 +28,18 @@ function savePlugin() {
               res.end(JSON.stringify({ error: true }));
             }
           });
+        } else if (req.url.startsWith('/api/get-content')) {
+          // ЛОКАЛЬНОЕ ЧТЕНИЕ ДАННЫХ
+          try {
+            const filePath = path.resolve(__dirname, 'src/data/products.json');
+            const content = fs.readFileSync(filePath, 'utf-8');
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(content);
+          } catch (e) {
+            res.statusCode = 500;
+            res.end(JSON.stringify({ error: true }));
+          }
         } else if (req.url.startsWith('/api/send-order')) {
           // ЛОКАЛЬНАЯ ИМИТАЦИЯ ОТПРАВКИ ЗАКАЗА + ЮKASSA
           let body = '';
