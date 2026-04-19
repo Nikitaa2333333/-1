@@ -379,12 +379,10 @@ export default async function handler(req, res) {
             ].filter(Boolean).join('\n');
 
             try {
+                const { Telegraf } = await import('telegraf');
+                const tempBot = new Telegraf(BOT_TOKEN);
                 await Promise.all(adminIds.map(chatId =>
-                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
-                    })
+                    tempBot.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' })
                 ));
             } catch (tgErr) {
                 console.error('[Telegram] Error sending pending notification:', tgErr);
