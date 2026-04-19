@@ -127,28 +127,28 @@ if (process.env.BOT_TOKEN) {
         ctx.reply('Спасибо за сообщение! Мы передали его менеджеру, скоро вам ответят. 🍓');
     });
 
-    // Сначала удаляем webhook (на случай если был установлен ранее),
-    // потом запускаем polling. При 409 — ждём и пробуем снова.
-    const launchBot = async (retryDelay = 5000) => {
+    let retryTimer = null;
+
+    const launchBot = async (retryDelay = 5000, attempt = 0, maxAttempts = 12) => {
         try {
             await bot.telegram.deleteWebhook({ drop_pending_updates: true });
             await bot.launch();
             console.log('✅ Телеграм-бот успешно запущен');
         } catch (err) {
-            if (err.message && err.message.includes('409')) {
-                console.warn(`⚠️ Бот занят другим процессом (409). Повтор через ${retryDelay / 1000}с...`);
-                setTimeout(() => launchBot(retryDelay), retryDelay);
+            if (err.message && err.message.includes('409') && attempt < maxAttempts) {
+                console.warn(`⚠️ Бот занят другим процессом (409). Попытка ${attempt + 1}/${maxAttempts}, повтор через ${retryDelay / 1000}с...`);
+                retryTimer = setTimeout(() => launchBot(retryDelay, attempt + 1, maxAttempts), retryDelay);
             } else {
-                console.error('❌ Ошибка запуска бота:', err.message);
+                console.error('❌ Ошибка запуска бота (превышены попытки или другая ошибка):', err.message);
             }
         }
     };
 
     launchBot();
 
-    // Безопасное завершение
-    process.once('SIGINT', () => bot.stop('SIGINT'));
-    process.once('SIGTERM', () => bot.stop('SIGTERM'));
+    // Безопасное завершение — чистим таймер чтобы процесс вышел сразу
+    process.once('SIGINT', () => { if (retryTimer) clearTimeout(retryTimer); bot.stop('SIGINT'); });
+    process.once('SIGTERM', () => { if (retryTimer) clearTimeout(retryTimer); bot.stop('SIGTERM'); });
 } else {
     console.warn('⚠️ BOT_TOKEN не найден, бот не запущен');
 }
