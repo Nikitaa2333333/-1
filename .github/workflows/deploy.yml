@@ -9,18 +9,22 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Trigger Timeweb redeploy
         run: |
-          curl -s -o response.json -w "%{http_code}" \
+          SHA=$(git rev-parse HEAD)
+          HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
             -X POST "https://api.timeweb.cloud/api/v1/apps/182121/deploy" \
             -H "Authorization: Bearer ${{ secrets.TW_API_TOKEN }}" \
-            -H "Content-Type: application/json" > http_code.txt
+            -H "Content-Type: application/json" \
+            -d "{\"commit_sha\": \"$SHA\"}")
           cat response.json
-          CODE=$(cat http_code.txt)
-          echo "HTTP status: $CODE"
-          if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ]; then
+          echo "HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
             echo "Deploy triggered successfully"
           else
-            echo "Deploy failed with status $CODE"
+            echo "Deploy failed with status $HTTP_CODE"
             exit 1
           fi
