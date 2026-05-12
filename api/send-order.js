@@ -378,15 +378,16 @@ export default async function handler(req, res) {
                 '<i>Менеджер, жди подтверждения оплаты от бота ✅</i>'
             ].filter(Boolean).join('\n');
 
-            try {
-                const { Telegraf } = await import('telegraf');
+            import('telegraf').then(({ Telegraf }) => {
                 const tempBot = new Telegraf(BOT_TOKEN);
-                await Promise.all(adminIds.map(chatId =>
+                Promise.all(adminIds.map(chatId =>
                     tempBot.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' })
-                ));
-            } catch (tgErr) {
-                console.error('[Telegram] Error sending pending notification:', tgErr);
-            }
+                )).catch(tgErr => {
+                    console.error('[Telegram] Error sending pending notification:', tgErr);
+                });
+            }).catch(tgErr => {
+                console.error('[Telegram] Error importing telegraf:', tgErr);
+            });
         }
 
         return res.status(200).json({
